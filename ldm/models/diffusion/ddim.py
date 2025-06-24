@@ -228,7 +228,7 @@ class DDIMSampler(object):
         alphas_prev = self.model.alphas_cumprod_prev if ddim_use_original_steps else self.ddim_alphas_prev
         betas = self.model.betas
 
-        iterator = tqdm(time_range, desc='DDIM Sampler', total=total_steps)
+        iterator = tqdm(time_range, desc='DDIM Sampler', total=total_steps, disable=True)
 
         for i, step in enumerate(iterator):        
             # Instantiating parameters
@@ -266,12 +266,13 @@ class DDIMSampler(object):
 
             # Performing time-travel if in selected indices
             if index <= (total_steps - index_split) and index > 0:   
+
                 x_t = img.detach().clone()
 
                 # Performing only every 10 steps (or so)
                 # TODO: also make this not hard-coded
                 if index % 10 == 0 :  
-                    for k in range(i, min(i+inter_timesteps, len(list( reversed(timesteps) ))-1)):
+                    """ for k in range(i, min(i+inter_timesteps, len(list( reversed(timesteps) ))-1)):
                         step_ = list( reversed(timesteps))[k+1]
                         ts_ = torch.full((b,), step_, device=device, dtype=torch.long)
                         index_ = total_steps - k - 1
@@ -282,7 +283,7 @@ class DDIMSampler(object):
                                             noise_dropout=noise_dropout, score_corrector=score_corrector,
                                             corrector_kwargs=corrector_kwargs,
                                             unconditional_guidance_scale=unconditional_guidance_scale,
-                                            unconditional_conditioning=unconditional_conditioning)
+                                            unconditional_conditioning=unconditional_conditioning) """
                         
                     # Some arbitrary scheduling for sigma
                     if index >= 0:
@@ -334,7 +335,7 @@ class DDIMSampler(object):
         return img, intermediates
 
 
-    def pixel_optimization(self, measurement, x_prime, operator_fn, eps=1e-3, max_iters=2000):
+    def pixel_optimization(self, measurement, x_prime, operator_fn, eps=1e-3, max_iters=1000):
         """
         Function to compute argmin_x ||y - A(x)||_2^2
 
@@ -370,7 +371,7 @@ class DDIMSampler(object):
         return opt_var
 
 
-    def latent_optimization(self, measurement, z_init, operator_fn, eps=1e-3, max_iters=500, lr=None):
+    def latent_optimization(self, measurement, z_init, operator_fn, eps=1e-3, max_iters=250, lr=None):
 
         """
         Function to compute argmin_z ||y - A( D(z) )||_2^2
@@ -428,7 +429,6 @@ class DDIMSampler(object):
             if cur_loss < eps**2:  # needs tuning according to noise level for early stopping
                 break
 
-
         return z_init, init_loss       
 
 
@@ -469,7 +469,7 @@ class DDIMSampler(object):
         total_steps = timesteps if ddim_use_original_steps else timesteps.shape[0]
         print(f"Running DDIM Sampling with {total_steps} timesteps")
 
-        iterator = tqdm(time_range, desc='DDIM Sampler', total=total_steps)
+        iterator = tqdm(time_range, desc='DDIM Sampler', total=total_steps, disable=True)
 
         for i, step in enumerate(iterator):
             index = total_steps - i - 1
@@ -538,7 +538,7 @@ class DDIMSampler(object):
         x_prev = a_prev.sqrt() * pred_x0 + dir_xt + noise
 
         # Computing \hat{x}_0 via Tweedie's formula
-        pseudo_x0 = (x - sqrt_one_minus_at**2 * e_t) / a_t.sqrt()
+        pseudo_x0 = (x - (sqrt_one_minus_at) * e_t) / a_t.sqrt()
         return x_prev, pred_x0, pseudo_x0
 
 
@@ -568,7 +568,7 @@ class DDIMSampler(object):
         total_steps = timesteps.shape[0]
         print(f"Running DDIM Sampling with {total_steps} timesteps")
 
-        iterator = tqdm(time_range, desc='Decoding image', total=total_steps)
+        iterator = tqdm(time_range, desc='Decoding image', total=total_steps, disable=True)
         x_dec = x_latent
         for i, step in enumerate(iterator):
             index = total_steps - i - 1
