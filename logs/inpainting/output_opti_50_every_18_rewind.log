@@ -1,0 +1,167 @@
+nohup: ignoring input
+Device set to cuda:0.
+Loading model from models/ldm/model.ckpt
+/home/workspace/sun/ReSampleTest/model_loader.py:13: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  pl_sd = torch.load(ckpt)#, map_location="cpu")
+LatentDiffusion: Running in eps-prediction mode
+DiffusionWrapper has 274.06 M params.
+Keeping EMAs of 370.
+making attention of type 'vanilla' with 512 in_channels
+Working with z of shape (1, 3, 64, 64) = 12288 dimensions.
+making attention of type 'vanilla' with 512 in_channels
+/home/workspace/sun/ReSampleTest/ldm/models/autoencoder.py:79: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  sd = torch.load(path, map_location="cpu")["state_dict"]
+Restored from models/first_stage_models/vq-f4/model.ckpt with 0 missing and 55 unexpected keys
+Training LatentDiffusion as an unconditional model.
+Operation: inpainting / Noise: gaussian
+Condition <ldm_inverse.condition_methods.PosteriorSampling object at 0x79b97bfbeef0>
+Conditioning method <bound method PosteriorSampling.conditioning of <ldm_inverse.condition_methods.PosteriorSampling object at 0x79b97bfbeef0>>
+Conditioning sampler : resample
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+Inference for image 0
+Data shape for DDIM sampling is (1, 3, 64, 64), eta 0.0
+Setting up [LPIPS] perceptual loss: trunk [vgg], v[0.1], spatial [off]
+/home/workspace/sun/ReSampleTest/ReSampleTest/lib/python3.10/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/home/workspace/sun/ReSampleTest/ReSampleTest/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=VGG16_Weights.IMAGENET1K_V1`. You can also use `weights=VGG16_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+Loading model from: /home/workspace/sun/ReSampleTest/ReSampleTest/lib/python3.10/site-packages/lpips/weights/v0.1/vgg.pth
+/home/workspace/sun/ReSampleTest/ReSampleTest/lib/python3.10/site-packages/lpips/lpips.py:107: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.load_state_dict(torch.load(model_path, map_location='cpu'), strict=False)
+measurement psnr:  33.45687930496214
+measurement nmse:  0.005380828399211168
+measurement ssim:  0.8934873
+measurement lpips:  0.19673624634742737
+Inference for image 1
+Data shape for DDIM sampling is (1, 3, 64, 64), eta 0.0
+Setting up [LPIPS] perceptual loss: trunk [vgg], v[0.1], spatial [off]
+Loading model from: /home/workspace/sun/ReSampleTest/ReSampleTest/lib/python3.10/site-packages/lpips/weights/v0.1/vgg.pth
+measurement psnr:  28.64977566263886
+measurement nmse:  0.004765309859067202
+measurement ssim:  0.85123205
+measurement lpips:  0.2015005350112915
+Inference for image 2
+Data shape for DDIM sampling is (1, 3, 64, 64), eta 0.0
+Setting up [LPIPS] perceptual loss: trunk [vgg], v[0.1], spatial [off]
+Loading model from: /home/workspace/sun/ReSampleTest/ReSampleTest/lib/python3.10/site-packages/lpips/weights/v0.1/vgg.pth
+measurement psnr:  21.788626955788757
+measurement nmse:  0.0242488831281662
+measurement ssim:  0.6672532
+measurement lpips:  0.34481072425842285
+Inference for image 3
+Data shape for DDIM sampling is (1, 3, 64, 64), eta 0.0
+Setting up [LPIPS] perceptual loss: trunk [vgg], v[0.1], spatial [off]
+Loading model from: /home/workspace/sun/ReSampleTest/ReSampleTest/lib/python3.10/site-packages/lpips/weights/v0.1/vgg.pth
+measurement psnr:  30.593387933924994
+measurement nmse:  0.0019435867434367537
+measurement ssim:  0.9317091
+measurement lpips:  0.12438468635082245
+Inference for image 4
+Data shape for DDIM sampling is (1, 3, 64, 64), eta 0.0
+Setting up [LPIPS] perceptual loss: trunk [vgg], v[0.1], spatial [off]
+Loading model from: /home/workspace/sun/ReSampleTest/ReSampleTest/lib/python3.10/site-packages/lpips/weights/v0.1/vgg.pth
+measurement psnr:  31.64146487211876
+measurement nmse:  0.0032852552831172943
+measurement ssim:  0.8990707
+measurement lpips:  0.21908891201019287
+Inference for image 5
+Data shape for DDIM sampling is (1, 3, 64, 64), eta 0.0
+Setting up [LPIPS] perceptual loss: trunk [vgg], v[0.1], spatial [off]
+Loading model from: /home/workspace/sun/ReSampleTest/ReSampleTest/lib/python3.10/site-packages/lpips/weights/v0.1/vgg.pth
+measurement psnr:  31.286366751938527
+measurement nmse:  0.004108470864593983
+measurement ssim:  0.9014878
+measurement lpips:  0.1802590787410736
+Inference for image 6
+Data shape for DDIM sampling is (1, 3, 64, 64), eta 0.0
+Setting up [LPIPS] perceptual loss: trunk [vgg], v[0.1], spatial [off]
+Loading model from: /home/workspace/sun/ReSampleTest/ReSampleTest/lib/python3.10/site-packages/lpips/weights/v0.1/vgg.pth
+measurement psnr:  29.22866775457564
+measurement nmse:  0.004983695689588785
+measurement ssim:  0.7920262
+measurement lpips:  0.25286784768104553
+Inference for image 7
+Data shape for DDIM sampling is (1, 3, 64, 64), eta 0.0
+Setting up [LPIPS] perceptual loss: trunk [vgg], v[0.1], spatial [off]
+Loading model from: /home/workspace/sun/ReSampleTest/ReSampleTest/lib/python3.10/site-packages/lpips/weights/v0.1/vgg.pth
+measurement psnr:  31.13298722126723
+measurement nmse:  0.004801501054316759
+measurement ssim:  0.8276896
+measurement lpips:  0.27660661935806274
+Inference for image 8
+Data shape for DDIM sampling is (1, 3, 64, 64), eta 0.0
+Setting up [LPIPS] perceptual loss: trunk [vgg], v[0.1], spatial [off]
+Loading model from: /home/workspace/sun/ReSampleTest/ReSampleTest/lib/python3.10/site-packages/lpips/weights/v0.1/vgg.pth
+measurement psnr:  29.37424233167294
+measurement nmse:  0.005324965808540583
+measurement ssim:  0.7527304
+measurement lpips:  0.308407723903656
+Inference for image 9
+Data shape for DDIM sampling is (1, 3, 64, 64), eta 0.0
+Setting up [LPIPS] perceptual loss: trunk [vgg], v[0.1], spatial [off]
+Loading model from: /home/workspace/sun/ReSampleTest/ReSampleTest/lib/python3.10/site-packages/lpips/weights/v0.1/vgg.pth
+measurement psnr:  30.08036396792342
+measurement nmse:  0.0019086445681750774
+measurement ssim:  0.90616584
+measurement lpips:  0.13220220804214478
+Inference for image 10
+Data shape for DDIM sampling is (1, 3, 64, 64), eta 0.0
+Setting up [LPIPS] perceptual loss: trunk [vgg], v[0.1], spatial [off]
+Loading model from: /home/workspace/sun/ReSampleTest/ReSampleTest/lib/python3.10/site-packages/lpips/weights/v0.1/vgg.pth
+measurement psnr:  31.518663008499473
+measurement nmse:  0.016021832823753357
+measurement ssim:  0.84602576
+measurement lpips:  0.21768218278884888
+Inference for image 11
+Data shape for DDIM sampling is (1, 3, 64, 64), eta 0.0
+Setting up [LPIPS] perceptual loss: trunk [vgg], v[0.1], spatial [off]
+Loading model from: /home/workspace/sun/ReSampleTest/ReSampleTest/lib/python3.10/site-packages/lpips/weights/v0.1/vgg.pth
+measurement psnr:  29.955736374116793
+measurement nmse:  0.005557288881391287
+measurement ssim:  0.8646002
+measurement lpips:  0.14192353188991547
+Inference for image 12
+Data shape for DDIM sampling is (1, 3, 64, 64), eta 0.0
+Setting up [LPIPS] perceptual loss: trunk [vgg], v[0.1], spatial [off]
+Loading model from: /home/workspace/sun/ReSampleTest/ReSampleTest/lib/python3.10/site-packages/lpips/weights/v0.1/vgg.pth
+measurement psnr:  31.71730649249909
+measurement nmse:  0.0027066192124038935
+measurement ssim:  0.8716844
+measurement lpips:  0.25279438495635986
+Inference for image 13
+Data shape for DDIM sampling is (1, 3, 64, 64), eta 0.0
+Setting up [LPIPS] perceptual loss: trunk [vgg], v[0.1], spatial [off]
+Loading model from: /home/workspace/sun/ReSampleTest/ReSampleTest/lib/python3.10/site-packages/lpips/weights/v0.1/vgg.pth
+measurement psnr:  30.003871935249702
+measurement nmse:  0.003058014437556267
+measurement ssim:  0.8782408
+measurement lpips:  0.18041986227035522
+Inference for image 14
+Data shape for DDIM sampling is (1, 3, 64, 64), eta 0.0
+Setting up [LPIPS] perceptual loss: trunk [vgg], v[0.1], spatial [off]
+Loading model from: /home/workspace/sun/ReSampleTest/ReSampleTest/lib/python3.10/site-packages/lpips/weights/v0.1/vgg.pth
+measurement psnr:  25.604073098057736
+measurement nmse:  0.013984300196170807
+measurement ssim:  0.80893856
+measurement lpips:  0.2747202515602112
+Inference for image 15
+Data shape for DDIM sampling is (1, 3, 64, 64), eta 0.0

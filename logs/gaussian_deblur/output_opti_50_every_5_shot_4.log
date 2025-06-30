@@ -1,0 +1,1131 @@
+nohup: ignoring input
+Device set to cuda:1.
+Loading model from models/ldm/model.ckpt
+/home/workspace/sun/ReSampleTest/model_loader.py:13: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  pl_sd = torch.load(ckpt)#, map_location="cpu")
+LatentDiffusion: Running in eps-prediction mode
+DiffusionWrapper has 274.06 M params.
+Keeping EMAs of 370.
+making attention of type 'vanilla' with 512 in_channels
+Working with z of shape (1, 3, 64, 64) = 12288 dimensions.
+making attention of type 'vanilla' with 512 in_channels
+/home/workspace/sun/ReSampleTest/ldm/models/autoencoder.py:79: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  sd = torch.load(path, map_location="cpu")["state_dict"]
+Restored from models/first_stage_models/vq-f4/model.ckpt with 0 missing and 55 unexpected keys
+Training LatentDiffusion as an unconditional model.
+Operation: gaussian_blur / Noise: gaussian
+Condition <ldm_inverse.condition_methods.PosteriorSampling object at 0x7035dadc2d10>
+Conditioning method <bound method PosteriorSampling.conditioning of <ldm_inverse.condition_methods.PosteriorSampling object at 0x7035dadc2d10>>
+Conditioning sampler : resample
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+Inference for image 0
+Data shape for DDIM sampling is (1, 3, 64, 64), eta 0.0
+     START
+0 tensor(84.3479, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(44.1163, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(56.3382, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(66.1583, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(83.0913, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(43.9513, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(56.2068, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(66.1850, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(81.7422, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(43.7468, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(56.0104, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(66.0478, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(80.6292, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(43.7373, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(56.0165, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(66.0962, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(79.5631, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(43.4863, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(55.8104, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(65.8989, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(78.2290, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(43.4008, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(55.7295, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(65.8486, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(76.8880, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(43.2740, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(55.5532, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(65.6943, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(75.8026, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(43.2028, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(55.5068, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(65.5922, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(74.7920, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(42.9340, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(55.2347, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(65.3262, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(73.6723, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(42.8241, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(55.0831, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(65.2291, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(72.6080, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(42.6422, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(54.9427, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(65.1785, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(71.5882, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(42.5110, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(54.7963, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(65.0155, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(70.5412, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(42.2513, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(54.5037, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(64.7144, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(69.5502, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(42.2598, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(54.5085, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(64.7451, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(68.6367, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(42.2753, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(54.5596, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(64.9135, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(67.7043, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(42.2076, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(54.5468, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(64.9265, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(66.7791, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(41.9837, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(54.2932, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(64.6239, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(66.0093, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(42.0620, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(54.4358, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(64.7761, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(65.2571, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(42.1590, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(54.5269, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(64.9632, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(64.4280, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(42.0066, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(54.4722, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(64.9016, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(63.6672, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(41.8450, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(54.3186, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(64.7523, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(62.9460, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(41.7088, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(54.2158, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(64.6481, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(62.0254, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(41.6970, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(54.1172, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(64.5699, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(61.1664, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(41.6373, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(53.8875, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(64.2442, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(60.5402, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(41.5315, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(53.8125, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(64.1912, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(59.9580, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(41.4809, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(53.7797, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(64.2226, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(59.1242, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(41.4399, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(53.7178, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(64.2322, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(58.5455, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(41.4400, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(53.7133, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(64.2181, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(58.0148, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(41.3469, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(53.6371, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(64.1088, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(57.2411, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(41.2258, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(53.5653, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(64.0611, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(56.3664, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(41.0659, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(53.3605, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(63.8437, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(55.7222, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(41.0429, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(53.3772, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(63.8968, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(55.2566, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(40.9947, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(53.3607, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(63.8963, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(54.7680, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(41.0553, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(53.4061, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(63.9139, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(54.2469, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(41.2221, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(53.5067, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(64.0246, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(53.6187, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(41.3006, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(53.5935, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(64.0946, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(52.9492, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(41.1408, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(53.4156, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(63.9121, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(52.5065, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(41.0151, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(53.4689, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(63.9321, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(52.1958, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(40.9889, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(53.5021, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(64.0150, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(51.6707, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(41.1438, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(53.6471, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(64.1697, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(51.0838, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(41.0104, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(53.4892, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(64.0164, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(50.7216, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(41.1371, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(53.4841, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(63.9252, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(50.4564, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(41.1638, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(53.5013, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(63.9381, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(50.1120, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(41.2683, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(53.6371, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(64.0084, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(49.7789, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(41.2710, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(53.6575, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(64.0787, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(49.4110, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(41.4191, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(53.8618, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(64.2322, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(48.9122, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(41.3537, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(53.7837, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(64.1994, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(48.4877, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(41.3759, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(53.8348, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(64.2030, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(48.2184, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(41.3996, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(53.8438, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(64.2045, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(47.9289, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(41.5988, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(54.0547, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(64.3737, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(47.6390, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(41.6901, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(54.1168, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(64.4739, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(47.4404, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(41.7510, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(54.2019, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(64.5356, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(47.1589, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(41.7725, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(54.2397, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(64.5773, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(46.7331, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(41.7676, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(54.2310, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(64.6040, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(46.4617, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(41.8590, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(54.3166, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(64.7323, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(46.3791, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(42.0253, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(54.4977, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(64.8867, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(46.1715, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(42.0795, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(54.5236, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(64.8773, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(45.8357, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(42.1830, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(54.7128, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(65.1074, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(45.6452, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(42.4162, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(54.9000, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(65.3353, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(45.5692, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(42.6041, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(55.1544, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(65.5512, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(45.4552, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(42.7130, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(55.2426, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(65.6702, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(45.3408, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(42.7465, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(55.2998, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(65.6846, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(45.1904, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(42.8201, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(55.4020, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(65.8526, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(44.9028, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(42.9610, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(55.5434, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(65.9503, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(44.7205, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(43.0310, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(55.5540, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(65.9766, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(44.7254, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(43.3065, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(55.8751, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(66.2264, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(44.5876, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(43.4318, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(55.9751, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(66.3784, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(44.3348, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(43.4669, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(55.9895, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(66.4077, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(44.3758, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(43.6489, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(56.1225, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(66.4639, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(44.5777, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(43.9709, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(56.4165, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(66.7384, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(44.5003, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(44.2505, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(56.6223, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(66.9501, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(44.3640, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(44.6090, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(56.9374, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(67.1905, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(44.4830, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(44.8208, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(57.1210, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(67.2831, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(44.5292, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(45.2276, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(57.5060, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(67.6111, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(44.3671, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(45.3064, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(57.5031, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(67.5668, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(44.4001, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(45.4650, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(57.6757, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(67.6604, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(44.6298, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(45.7400, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(57.9304, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(67.9050, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(44.6420, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(45.9904, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(58.1349, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(68.0214, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(44.5489, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(46.1364, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(58.1885, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(68.0438, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(44.6019, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(46.2820, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(58.3773, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(68.1412, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(44.6800, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(46.4546, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(58.5193, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(68.2923, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(44.7591, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(46.7372, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(58.8007, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(68.4748, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(44.9315, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(47.1071, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(59.0453, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(68.6865, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(45.0450, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(47.3447, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(59.1765, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(68.7093, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(45.0937, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(47.4760, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(59.2606, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(68.7962, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(45.3131, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(47.8318, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(59.5816, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(69.0053, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(45.5432, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(48.2559, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(59.8838, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(69.2954, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(45.5941, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(48.5070, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(60.1477, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(69.5057, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(45.7170, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(48.6582, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(60.2539, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(69.5848, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(45.9962, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(48.9627, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(60.4950, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(69.7655, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(46.0664, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(49.1540, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(60.6048, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(69.8803, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(45.8857, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(49.2110, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(60.5790, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(69.9314, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(45.8489, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(49.2796, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(60.6208, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(69.8852, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(46.0842, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(49.6214, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(60.9663, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(70.2795, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(46.3341, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(50.0445, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(61.2777, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(70.6251, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(46.4701, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(50.3474, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(61.6309, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(70.9613, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(46.4798, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(50.4315, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(61.7020, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(71.0113, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(46.4624, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(50.5721, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(61.8315, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(71.1755, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(46.5077, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(50.7510, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(61.9518, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(71.3479, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(46.7356, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(50.9804, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(62.1978, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(71.5357, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(46.9061, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(51.1447, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(62.3569, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(71.7720, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(46.8950, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(51.2004, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(62.4409, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(71.7840, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(46.9408, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(51.4027, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(62.5643, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(71.9646, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(47.1628, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(51.7995, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(62.9150, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(72.3213, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(47.3205, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(51.9643, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(63.0833, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(72.5384, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(47.4309, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(52.1852, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(63.2559, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(72.7070, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(47.6259, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(52.3295, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(63.3925, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(72.8957, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(47.6647, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(52.4667, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(63.4613, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(72.9714, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(47.4878, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(52.4524, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(63.4224, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(72.9184, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(47.5615, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(52.7038, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(63.5820, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(73.1184, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(47.9327, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(53.0710, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(63.9209, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(73.5225, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(48.1276, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(53.2975, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(64.1329, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(73.6953, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(48.1968, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(53.4086, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(64.2217, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(73.7978, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(48.3040, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(53.5896, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(64.4853, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(74.0057, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(48.2075, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(53.6338, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(64.5187, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(74.0744, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(48.0805, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(53.6762, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(64.5732, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(74.0359, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(48.3741, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(53.9072, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(64.7893, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(74.2793, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(48.7770, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(54.2649, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(65.1458, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(74.5368, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(48.8196, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(54.3986, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(65.2596, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(74.6795, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(48.8175, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(54.4507, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(65.4160, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(74.8167, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(49.0351, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(54.6473, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(65.6078, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(74.9437, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(49.1676, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(54.8607, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(65.8653, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(75.1909, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(49.1808, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(55.1454, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(66.0729, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(75.4454, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(49.3132, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(55.4204, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(66.3623, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(75.7512, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(49.4790, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(55.5882, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(66.5341, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(75.8763, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(49.5359, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(55.6754, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(66.6648, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(76.0077, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(49.6021, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(55.7952, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(66.7719, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(76.1471, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(49.7749, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(56.0997, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(67.0748, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(76.4377, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(49.9506, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(56.2733, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(67.2563, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(76.6151, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(50.1098, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(56.5778, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(67.4904, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(76.8364, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(50.2688, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(56.7940, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(67.6748, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(77.0517, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(50.3976, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(57.0252, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(67.9469, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(77.3170, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(50.4418, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(57.1389, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(68.0837, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(77.4510, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(50.5349, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(57.3940, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(68.3256, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(77.6788, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(50.7445, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(57.6173, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(68.5199, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(77.8979, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(50.9434, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(57.8107, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(68.6786, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(78.0321, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(51.0933, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(57.9833, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(68.8776, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(78.2291, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(51.3475, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(58.2977, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(69.2249, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(78.5520, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(51.6257, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(58.6069, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(69.5275, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(78.8873, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(51.7031, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(58.8259, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(69.9167, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(79.2076, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(51.7628, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(58.9644, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(70.1074, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(79.4346, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(52.0196, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(59.3903, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(70.6203, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(79.8819, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(52.2537, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(59.6867, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(70.9051, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(80.1965, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(52.3705, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(59.7685, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(71.0456, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(80.3500, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(52.5762, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(59.9863, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(71.3301, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(80.6068, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(52.8024, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(60.2794, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(71.6055, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(80.8855, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(52.9497, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(60.7133, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(71.9696, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(81.3018, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(53.1217, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(61.0771, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(72.3407, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(81.7018, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(53.3375, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(61.2985, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(72.6322, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(81.9553, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(53.5621, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(61.5405, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(72.9046, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(82.2287, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(53.9381, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(61.8813, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(73.2477, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(82.5898, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(54.2832, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(62.2541, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(73.7022, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(82.9757, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(54.3228, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(62.3929, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(73.9199, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(83.2373, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(54.3856, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(62.6314, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(74.3106, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(83.5771, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(54.7733, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(63.0792, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(74.7391, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(84.0310, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(55.0943, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(63.4718, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(75.1359, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(84.3677, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(55.2323, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(63.6510, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(75.3795, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(84.6391, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(55.4964, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(63.9622, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(75.6566, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(84.8829, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(55.8271, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(64.3194, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(76.0260, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(85.2828, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(56.0042, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(64.6139, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(76.3568, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(85.6243, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(56.2319, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(64.8467, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(76.6676, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(85.8950, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(56.5930, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(65.2872, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(77.2663, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(86.4654, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(56.8457, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(65.6884, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(77.6575, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(86.8942, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(56.9845, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(65.9881, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(78.0406, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(87.3075, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(57.1829, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(66.2044, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(78.3367, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(87.5329, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(57.3988, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(66.5597, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(78.6562, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(87.9094, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(57.5919, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(66.9407, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(79.0158, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(88.3013, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(57.8686, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(67.3255, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(79.4563, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(88.6657, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(58.2015, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(67.6129, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(79.8244, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(89.0566, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(58.3926, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(67.9225, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(80.2812, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(89.4090, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(58.4240, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(68.1995, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(80.5334, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(89.6933, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(58.5338, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(68.5124, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(80.9033, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(90.0381, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(58.8078, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(68.7843, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(81.2543, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(90.3804, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(59.0769, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(69.1064, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(81.6611, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(90.7400, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(59.2342, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(69.3397, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(81.8885, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(90.9882, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(59.3641, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(69.5977, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(82.2710, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(91.3641, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(59.5518, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(69.8284, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(82.5791, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(91.6044, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(59.8534, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(70.2683, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(83.0641, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(92.1108, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(60.2971, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(70.8496, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(83.5829, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(92.6644, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(60.6968, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(71.3582, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(84.0868, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(93.1841, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(60.8424, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(71.5556, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(84.3492, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(93.3942, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(60.9305, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(71.7766, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(84.6642, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(93.6966, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(61.1788, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(72.0093, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(84.9149, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(93.9617, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(61.3776, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(72.2478, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(85.2715, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(94.2210, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(61.4760, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(72.4286, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(85.5234, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(94.4948, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(61.7072, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(72.8180, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(85.9979, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(94.8930, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(62.0099, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(73.3372, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(86.4334, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(95.3664, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(62.2233, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(73.7400, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(86.9318, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(95.7639, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(62.5004, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(74.0191, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(87.2877, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(96.1394, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(62.8791, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(74.4166, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(87.7884, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(96.5328, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(63.1729, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(74.8608, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(88.1735, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(96.9485, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(63.3839, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(75.4102, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(88.6973, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(97.4439, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(63.6027, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(75.6472, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(89.0043, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(97.7318, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(63.8246, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(76.0180, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(89.3748, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(98.0747, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(64.1447, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(76.2572, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(89.6416, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(98.3568, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(64.5788, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(76.7115, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(90.0693, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(98.7489, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(64.9439, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(77.0182, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(90.4509, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(99.1257, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(65.2090, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(77.4778, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(90.8188, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(99.4663, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(65.4677, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(77.9088, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(91.1756, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(99.8521, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(65.6647, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(78.3058, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(91.6046, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(100.2257, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(65.8052, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(78.4872, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(91.8416, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(100.4409, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(66.1217, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(78.9007, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(92.2999, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(100.8341, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(66.5932, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(79.2805, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(92.6744, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(101.2194, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(66.8974, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(79.6790, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(93.0220, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(101.5526, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(67.0289, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(79.8692, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(93.2680, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(101.7741, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(67.2700, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(80.4111, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(93.6833, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(102.1769, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(67.6423, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(80.9284, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(94.0968, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(102.6107, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(67.9622, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(81.2502, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(94.5085, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(102.9488, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(68.2105, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(81.4891, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(94.8060, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(103.2230, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(68.4609, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(81.9021, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(95.2138, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(103.5847, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(68.6864, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(82.3804, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(95.5555, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(103.9487, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(68.9103, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(82.6981, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(95.7663, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(104.1741, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(69.1943, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(82.9582, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(96.0850, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(104.4612, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(69.4365, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(83.2703, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(96.3136, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(104.6936, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(69.5939, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(83.6566, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(96.5667, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(104.9682, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(69.8680, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(84.1419, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(97.0103, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(105.4076, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(70.3418, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(84.4997, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(97.4336, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(105.7594, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+     START
+0 tensor(70.7265, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+1 tensor(84.9881, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+2 tensor(97.9288, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
+3 tensor(106.2420, device='cuda:1', grad_fn=<LinalgVectorNormBackward0>)
