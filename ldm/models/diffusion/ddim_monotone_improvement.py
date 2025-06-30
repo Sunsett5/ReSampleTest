@@ -15,13 +15,10 @@ from scripts.utils import clear_color
 class DDIMSampler(object):
     def __init__(self, model, schedule="linear", **kwargs):
         super().__init__()
-        self.model = model
+        self.model = model.to()
         self.ddpm_num_timesteps = model.num_timesteps
         self.schedule = schedule
         self.loss = torch.nn.MSELoss()
-        self.norm_history = []
-        self.hhi_history = []
-        self.ratio_history = []
 
     def register_buffer(self, name, attr):
         if type(attr) == torch.Tensor:
@@ -196,7 +193,7 @@ class DDIMSampler(object):
                      callback=None, timesteps=None, quantize_denoised=False,
                      mask=None, x0=None, img_callback=None, log_every_t=100,
                      temperature=1., noise_dropout=0., score_corrector=None, corrector_kwargs=None,
-                     unconditional_guidance_scale=1., unconditional_conditioning=None,):
+                     unconditional_guidance_scale=1., unconditional_conditioning=None, block=500, rewind=0):
         """
         DDIM-based sampling function for ReSample.
 
@@ -210,7 +207,6 @@ class DDIMSampler(object):
 
         self.opt_change_history = [None for _ in range(4)]
 
-        inter_timesteps = 5
         device = self.model.betas.device
         b = shape[0]
         if x_T is None:
@@ -231,51 +227,65 @@ class DDIMSampler(object):
         total_steps = timesteps if ddim_use_original_steps else timesteps.shape[0]
 
         # Need for measurement consistency
-        alphas = self.model.alphas_cumprod if ddim_use_original_steps else self.ddim_alphas 
-        alphas_prev = self.model.alphas_cumprod_prev if ddim_use_original_steps else self.ddim_alphas_prev
-        betas = self.model.betas
+        self.alphas = self.model.alphas_cumprod if ddim_use_original_steps else self.ddim_alphas.to(device)
+        self.sqrt_one_minus_alphas  = self.model.sqrt_one_minus_alphas_cumprod if ddim_use_original_steps else self.ddim_sqrt_one_minus_alphas.to(device)
+        self.alphas_prev = self.model.alphas_cumprod_prev if ddim_use_original_steps else self.ddim_alphas_prev
+        self.betas = self.model.betas
+        self.sigmas = self.ddim_sigmas_for_original_num_steps if ddim_use_original_steps else self.ddim_sigmas.to(device)
 
-        iterator = tqdm(time_range, desc='DDIM Sampler', total=total_steps, disable=True)
+        rewind_time_range = self.staggered_indices(time_range, block_size=block, step_back=rewind)
 
-        for i, step in enumerate(iterator):        
+        iterator = tqdm(rewind_time_range, desc='DDIM Sampler', disable=False)
+
+        for i, step in enumerate(iterator):   
             # Instantiating parameters
-            index = total_steps - i - 1
-            ts = torch.full((b,), step, device=device, dtype=torch.long)
-            a_t = torch.full((b, 1, 1, 1), alphas[index], device=device, requires_grad=False) # Needed for ReSampling
-            a_prev = torch.full((b, 1, 1, 1), alphas_prev[index], device=device, requires_grad=False) # Needed for ReSampling
-            b_t = torch.full((b, 1, 1, 1), betas[index], device=device, requires_grad=False)            
+            index = (step.item()+1)//2 - 1
+            if i+1 < len(rewind_time_range):
+                prev_index = (rewind_time_range[i+1].item()+1)//2 - 1
+            else:
+                prev_index = -1    
 
+            ts = torch.full((b,), step, device=device, dtype=torch.long) 
             if mask is not None:
                 assert x0 is not None
                 img_orig = self.model.q_sample(x0, ts)  # TODO: deterministic forward pass?
                 img = img_orig * mask + (1. - mask) * img
 
             # Unconditional sampling step
-            # pred_x0 is from DDIM, pseudo_x0 is computing \hat{x}_0 using Tweedie's formula
-            out, pred_x0, pseudo_x0 = self.p_sample_ddim(img, cond, ts, index=index, use_original_steps=ddim_use_original_steps,
+            # pred_x0 is from DDIM
+
+            if index % 20 == 0 and index < 200:
+                img_decoded = self.model.decode_first_stage(img.detach()) # Decode the latent space into pixel space
+                reconstructed = clear_color(img_decoded)
+                plt.imsave(f'{index}_before_opt.png', reconstructed)
+                img = self.monotone_optimization(img, cond, measurement, ts, index, prev_index, ddim_use_original_steps, quantize_denoised, temperature, noise_dropout, 
+                            score_corrector, corrector_kwargs, unconditional_guidance_scale, unconditional_conditioning, n_shots=4, operator_fn=operator_fn, eps=1e-3, max_iters=20)
+                img_decoded = self.model.decode_first_stage(img.detach()) # Decode the latent space into pixel space
+                reconstructed = clear_color(img_decoded)
+                plt.imsave(f'{index}_after_opt.png', reconstructed)
+        
+            out, pred_x0, _ = self.p_sample_ddim(img, cond, ts, index=index, prev_index=prev_index, use_original_steps=ddim_use_original_steps,
                                       quantize_denoised=quantize_denoised, temperature=temperature,
                                       noise_dropout=noise_dropout, score_corrector=score_corrector,
                                       corrector_kwargs=corrector_kwargs,
                                       unconditional_guidance_scale=unconditional_guidance_scale,
                                       unconditional_conditioning=unconditional_conditioning)
+            
+            a_t = torch.full((b, 1, 1, 1), self.alphas[index], device=device, requires_grad=False)
+            if prev_index >= 0:
+                a_prev = torch.full((b, 1, 1, 1), self.alphas[prev_index], device=device, requires_grad=False)
+            else:
+                a_prev = torch.full((b, 1, 1, 1), self.alphas_prev[0], device=device, requires_grad=False)
 
-            #print("Norm", pred_x0.norm().item())
-            #if index % 10 == 0:
-            #    # save img from pred_x0
-            #    
-            #    x_samples_ddim = self.model.decode_first_stage(pred_x0.detach())
-            #    reconstructed = clear_color(x_samples_ddim)
-            #    plt.imsave(os.path.join(f'{ts}_recon.png'), reconstructed)
-        
+            #img = out.detach().clone() # Detaching to avoid gradient flow from here
 
             img, _ = measurement_cond_fn(x_t=out, # x_t is x_{t-1}
                                             measurement=measurement,
                                             noisy_measurement=measurement,
                                             x_prev=img, # x_prev is x_t
-                                            x_0_hat=pseudo_x0,
+                                            x_0_hat=pred_x0,
                                             scale=a_t*.5, # For DPS learning rate / scale
                                             )
-
             
             # Instantiating time-travel parameters
             splits = 3 # TODO: make this not hard-coded
@@ -286,67 +296,56 @@ class DDIMSampler(object):
 
                 if self.opt_change_history[-1] is not None:
                     with torch.no_grad():
-                        measurement_error = self.loss(measurement, operator_fn( self.model.differentiable_decode_first_stage(img)))
-                        opt_change_norm = torch.linalg.norm(self.opt_change_history[-1].detach())**2
                         
                         img = img.detach() + 0.3 * self.opt_change_history[-1]
-                        
-                        #pseudo_x0 = pseudo_x0.detach() + 0.35 * self.opt_change_history[-1]
+                        #pred_x0 = pred_x0.detach() + 0.35 * self.opt_change_history[-1]
 
                     img = img.requires_grad_() # Requiring grad again after adding change
 
                 x_t = img.detach().clone()
 
-                # Performing only every 10 steps (or so)
+                # Performing only every 5 steps (or so)
                 # TODO: also make this not hard-coded
-                if index % 5 == 0 :  
-                    """ for k in range(i, min(i+inter_timesteps, len(list( reversed(timesteps) ))-1)):
-                        step_ = list( reversed(timesteps))[k+1]
-                        ts_ = torch.full((b,), step_, device=device, dtype=torch.long)
-                        index_ = total_steps - k - 1
-
-                        # Obtain x_{t-k}
-                        img, pred_x0, pseudo_x0 = self.p_sample_ddim(img, cond, ts_, index=index_, use_original_steps=ddim_use_original_steps,
-                                            quantize_denoised=quantize_denoised, temperature=temperature,
-                                            noise_dropout=noise_dropout, score_corrector=score_corrector,
-                                            corrector_kwargs=corrector_kwargs,
-                                            unconditional_guidance_scale=unconditional_guidance_scale,
-                                            unconditional_conditioning=unconditional_conditioning) """
-                        
+                #if index < prev_index:
+                """
+                if index % 5 == 0:
+                         
                     # Some arbitrary scheduling for sigma
-                    if index >= 0:
-                        sigma = 40*(1 - a_prev) / (1 - a_t) * (1 - a_t / a_prev)  
-                    else:
-                        sigma = 0.5
 
                     # Pixel-based optimization for second stage
                     if index >= index_split: 
                         
                         # Enforcing consistency via pixel-based optimization
-                        pseudo_x0 = pseudo_x0.detach() 
-                        pseudo_x0_pixel = self.model.decode_first_stage(pseudo_x0) # Get \hat{x}_0 into pixel space
+                        pred_x0 = pred_x0.detach() 
+                        pred_x0_pixel = self.model.decode_first_stage(pred_x0) # Get \hat{x}_0 into pixel space
 
                         opt_var = self.pixel_optimization(measurement=measurement, 
-                                                          x_prime=pseudo_x0_pixel,
+                                                          x_prime=pred_x0_pixel,
                                                           operator_fn=operator_fn)
                         
                         opt_var = self.model.encode_first_stage(opt_var) # Going back into latent space
 
-                        img = self.stochastic_resample(pseudo_x0=opt_var, x_t=x_t, a_t=a_prev, sigma=sigma)
+                        if index >= 0:
+                            sigma = 40*(1 - a_prev) / (1 - a_t) * (1 - a_t / a_prev)  
+                        else:
+                            sigma = 0.5
+
+                        img = self.stochastic_resample(pred_x0=opt_var, x_t=x_t, a_t=a_prev, sigma=sigma)
                         img = img.requires_grad_() # Seems to need to require grad here
 
                     # Latent-based optimization for third stage
                     elif index < index_split: # Needs to (possibly) be tuned
 
                         # Enforcing consistency via latent space optimization
-                        pseudo_x0, _ = self.latent_optimization(measurement=measurement,
-                                                             z_init=pseudo_x0.detach(),
+                        pred_x0, _ = self.latent_optimization(measurement=measurement,
+                                                             z_init=pred_x0.detach(),
                                                              operator_fn=operator_fn)
 
 
                         sigma = 40 * (1-a_prev)/(1 - a_t) * (1 - a_t / a_prev) # Change the 40 value for each task
 
-                        img = self.stochastic_resample(pseudo_x0=pseudo_x0, x_t=x_t, a_t=a_prev, sigma=sigma) 
+                        img = self.stochastic_resample(pred_x0=pred_x0, x_t=x_t, a_t=a_prev, sigma=sigma) 
+                """
 
             # Callback functions if needed
             if callback: callback(i)
@@ -361,9 +360,62 @@ class DDIMSampler(object):
         img = psuedo_x0.detach().clone()
             
         return img, intermediates
+    
+    def monotone_optimization(self, x_t, cond, measurement, t, original_index, original_prev_index, use_original_steps, quantize_denoised, temperature, noise_dropout, score_corrector, 
+                            corrector_kwargs, unconditional_guidance_scale, unconditional_conditioning, n_shots=4, operator_fn=None, eps=1e-3, max_iters=50):
+        
+        opt_var = x_t.detach().clone()
+        opt_var = opt_var.requires_grad_()
+        optimizer = torch.optim.AdamW([opt_var], lr=1e-1) # Initializing optimizer
+        measurement = measurement.detach() # Need to detach for weird PyTorch reasons
+
+        # Training loop
+
+        for i in range(max_iters):
+            optimizer.zero_grad()
+
+            out, pred_x0, measurement_losses = self.precise_tweedie(opt_var, cond, measurement, operator_fn, t, original_index, original_prev_index, use_original_steps, quantize_denoised, temperature, noise_dropout, 
+                            score_corrector, corrector_kwargs, unconditional_guidance_scale, unconditional_conditioning, n_shots)
+            
+            average_loss = torch.dot(measurement_losses, torch.ones_like(measurement_losses)) / measurement_losses.shape[0] # Average loss
+            if len(measurement_losses) > 1:
+                loss_ratio = measurement_losses[1:] / measurement_losses[:-1]
+            else:
+                loss_ratio = torch.tensor([1.0], device=measurement_losses.device)
+
+            print(measurement_losses)
+
+            print("Ratio", torch.mean(loss_ratio))
+
+            adjusted_loss = average_loss * torch.exp(3*torch.mean(loss_ratio)-1) # Adjusting loss based on the ratio of losses
+            
+            adjusted_loss.backward() # Take GD step
+            optimizer.step()
+
+            #print(f"Loss at step {i}: {loss.item()}")
+
+            # Convergence criteria
+            if adjusted_loss < eps**2: # needs tuning according to noise level for early stopping
+                break
+        
+        return opt_var
+                              
+        
+
+    def staggered_indices(self, original, block_size=10, step_back=5):
+        idx = 0
+        result = []
+        length = len(original)
+        while True:
+            end = min(idx + block_size, length)
+            result.extend(original[idx:end])
+            if end - idx == step_back:
+                break
+            idx = end - step_back
+        return np.array(result)
 
 
-    def pixel_optimization(self, measurement, x_prime, operator_fn, eps=1e-3, max_iters=1000):
+    def pixel_optimization(self, measurement, x_prime, operator_fn, eps=1e-3, max_iters=200):
         """
         Function to compute argmin_x ||y - A(x)||_2^2
 
@@ -390,15 +442,6 @@ class DDIMSampler(object):
             measurement_loss = loss(measurement, operator_fn( opt_var ) ) 
             
             measurement_loss.backward() # Take GD step
-
-            grad_opt_var = opt_var.grad.detach().clone()
-            norm = torch.sum(torch.abs(grad_opt_var)).item()
-            hhi = (torch.sum(grad_opt_var**2)/norm**2).item()
-            ratio = hhi/ norm
-            self.norm_history.append(norm)
-            self.hhi_history.append(hhi)
-            self.ratio_history.append(ratio)
-
             optimizer.step()
 
             # Convergence criteria
@@ -408,7 +451,7 @@ class DDIMSampler(object):
         return opt_var
 
 
-    def latent_optimization(self, measurement, z_init, operator_fn, eps=1e-3, max_iters=250, lr=None):
+    def latent_optimization(self, measurement, z_init, operator_fn, eps=1e-3, max_iters=50, lr=None):
 
         """
         Function to compute argmin_z ||y - A( D(z) )||_2^2
@@ -445,20 +488,12 @@ class DDIMSampler(object):
         
         for itr in range(max_iters):
             optimizer.zero_grad()
-            output = loss(measurement, operator_fn( self.model.differentiable_decode_first_stage( z_init ) ))  
+            output = loss(measurement, operator_fn( self.model.differentiable_decode_first_stage( z_init ) ))          
 
             if itr == 0:
                 init_loss = output.detach().clone()
                 
             output.backward() # Take GD step
-            grad_z_init = z_init.grad.detach().clone()
-            norm = torch.sum(torch.abs(grad_z_init)).item()
-            hhi = (torch.sum(grad_z_init**2)/norm**2).item()
-            ratio = hhi/ norm
-            self.norm_history.append(norm)
-            self.hhi_history.append(hhi)
-            self.ratio_history.append(ratio)
-  
             optimizer.step()
             cur_loss = output.detach().cpu().numpy() 
             
@@ -499,13 +534,13 @@ class DDIMSampler(object):
         return z_init, init_loss       
 
 
-    def stochastic_resample(self, pseudo_x0, x_t, a_t, sigma):
+    def stochastic_resample(self, pred_x0, x_t, a_t, sigma):
         """
         Function to resample x_t based on ReSample paper.
         """
         device = self.model.betas.device
-        noise = torch.randn_like(pseudo_x0, device=device)
-        return (sigma * a_t.sqrt() * pseudo_x0 + (1 - a_t) * x_t)/(sigma + 1 - a_t) + noise * torch.sqrt(1/(1/sigma + 1/(1-a_t)))
+        noise = torch.randn_like(pred_x0, device=device)
+        return (sigma * a_t.sqrt() * pred_x0 + (1 - a_t) * x_t)/(sigma + 1 - a_t) + noise * torch.sqrt(1/(1/sigma + 1/(1-a_t)))
 
 
     def ddim_sampling(self, cond, shape,
@@ -536,7 +571,7 @@ class DDIMSampler(object):
         total_steps = timesteps if ddim_use_original_steps else timesteps.shape[0]
         print(f"Running DDIM Sampling with {total_steps} timesteps")
 
-        iterator = tqdm(time_range, desc='DDIM Sampler', total=total_steps, disable=True)
+        iterator = tqdm(time_range, desc='DDIM Sampler', total=total_steps, disable=False)
 
         for i, step in enumerate(iterator):
             index = total_steps - i - 1
@@ -562,12 +597,62 @@ class DDIMSampler(object):
                 intermediates['pred_x0'].append(pred_x0)
 
         return img, intermediates
-
-
-    def p_sample_ddim(self, x, c, t, index, repeat_noise=False, use_original_steps=False, quantize_denoised=False,
-                      temperature=1., noise_dropout=0., score_corrector=None, corrector_kwargs=None,
-                      unconditional_guidance_scale=1., unconditional_conditioning=None):
+    
+    def precise_tweedie(self, x, c, measurement, operator_fn, t, original_index, original_prev_index, use_original_steps, quantize_denoised, temperature, noise_dropout, 
+                        score_corrector, corrector_kwargs, unconditional_guidance_scale, unconditional_conditioning, repeat_noise=False, n_shots=4):
         b, *_, device = *x.shape, x.device
+        step_size = t//n_shots
+        time_steps = [((t - i*step_size)//2)*2 +1 for i in range(0, n_shots)] + [torch.tensor(-1)]
+        time_steps = [time_steps[i] for i in range(len(time_steps)) if i==len(time_steps)-1 or (time_steps[i+1] != time_steps[i])]
+
+        x_inter = x.clone()
+
+        losses = torch.zeros((len(time_steps)-1,)).to(device)
+
+        #print([step.item() for step in time_steps])
+
+        for i, step in enumerate(time_steps[:-1]):
+            index = (step.item()+1)//2 - 1
+            prev_index = (time_steps[i+1].item()+1)//2 - 1
+            x_inter, pred_x0, _ = self.p_sample_ddim(x_inter, c, step, index=index, prev_index=prev_index, use_original_steps=use_original_steps,
+                                      quantize_denoised=quantize_denoised, temperature=temperature,
+                                      noise_dropout=noise_dropout, score_corrector=score_corrector,
+                                      corrector_kwargs=corrector_kwargs,
+                                      unconditional_guidance_scale=unconditional_guidance_scale,
+                                      unconditional_conditioning=unconditional_conditioning)
+            losses[i] = self.loss(measurement, operator_fn(self.model.differentiable_decode_first_stage(x_inter)))
+            
+        a_t = torch.full((b, 1, 1, 1), self.alphas[original_index], device=device, requires_grad=False)
+        sqrt_one_minus_at = torch.full((b, 1, 1, 1), self.sqrt_one_minus_alphas[original_index], device=device, requires_grad=False)
+        if original_prev_index >= 0:
+            a_prev = torch.full((b, 1, 1, 1), self.alphas[original_prev_index], device=device, requires_grad=False)
+        else:
+            a_prev = torch.full((b, 1, 1, 1), self.alphas_prev[0], device=device, requires_grad=False) 
+        sigma_t = torch.full((b, 1, 1, 1), self.sigmas[original_index], device=device, requires_grad=False) 
+            
+        e_t = (x - pred_x0 * a_t.sqrt())/sqrt_one_minus_at
+        
+        sigma_t = torch.full((b, 1, 1, 1), self.sigmas[original_index], device=device, requires_grad=False) 
+        dir_xt = (1. - a_prev - sigma_t**2).sqrt() * e_t
+        noise = sigma_t * noise_like(x.shape, device, repeat_noise) * temperature
+        x_prev = a_prev.sqrt() * + dir_xt + noise
+            
+        return x_prev, pred_x0, losses
+
+
+    def p_sample_ddim(self, x, c, t, index, prev_index, repeat_noise=False, use_original_steps=False, quantize_denoised=False,
+                      temperature=1., noise_dropout=0., score_corrector=None, corrector_kwargs=None,
+                      unconditional_guidance_scale=1., unconditional_conditioning=None, n_shots=4):
+        b, *_, device = *x.shape, x.device
+
+
+        a_t = torch.full((b, 1, 1, 1), self.alphas[index], device=device, requires_grad=False) # Needed for ReSampling
+        sqrt_one_minus_at = torch.full((b, 1, 1, 1), self.sqrt_one_minus_alphas[index], device=device, requires_grad=False)
+        if prev_index >= 0:
+            a_prev = torch.full((b, 1, 1, 1), self.alphas[prev_index], device=device, requires_grad=False)
+        else:
+            a_prev = torch.full((b, 1, 1, 1), self.alphas_prev[0], device=device, requires_grad=False) 
+        sigma_t = torch.full((b, 1, 1, 1), self.sigmas[index], device=device, requires_grad=False) 
 
         if unconditional_conditioning is None or unconditional_guidance_scale == 1.:
             e_t = self.model.apply_model(x, t, c)
@@ -582,17 +667,6 @@ class DDIMSampler(object):
             assert self.model.parameterization == "eps"
             e_t = score_corrector.modify_score(self.model, e_t, x, t, c, **corrector_kwargs)
 
-        alphas = self.model.alphas_cumprod if use_original_steps else self.ddim_alphas
-        alphas_prev = self.model.alphas_cumprod_prev if use_original_steps else self.ddim_alphas_prev
-        sqrt_one_minus_alphas = self.model.sqrt_one_minus_alphas_cumprod if use_original_steps else self.ddim_sqrt_one_minus_alphas
-        sigmas = self.ddim_sigmas_for_original_num_steps if use_original_steps else self.ddim_sigmas
-
-        # select parameters corresponding to the currently considered timestep
-        a_t = torch.full((b, 1, 1, 1), alphas[index], device=device)
-        a_prev = torch.full((b, 1, 1, 1), alphas_prev[index], device=device)
-        sigma_t = torch.full((b, 1, 1, 1), sigmas[index], device=device)
-        sqrt_one_minus_at = torch.full((b, 1, 1, 1), sqrt_one_minus_alphas[index],device=device)
-
         # current prediction for x_0
         pred_x0 = (x - sqrt_one_minus_at * e_t) / a_t.sqrt()
         if quantize_denoised:
@@ -604,9 +678,7 @@ class DDIMSampler(object):
             noise = torch.nn.functional.dropout(noise, p=noise_dropout)
         x_prev = a_prev.sqrt() * pred_x0 + dir_xt + noise
 
-        # Computing \hat{x}_0 via Tweedie's formula
-        pseudo_x0 = (x - (sqrt_one_minus_at) * e_t) / a_t.sqrt()
-        return x_prev, pred_x0, pseudo_x0
+        return x_prev, pred_x0, e_t
 
 
     def stochastic_encode(self, x0, t, use_original_steps=False, noise=None):

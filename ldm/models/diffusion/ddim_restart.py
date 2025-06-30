@@ -5,7 +5,6 @@ import numpy as np
 from tqdm import tqdm
 from functools import partial
 from scripts.utils import *
-import matplotlib.pyplot as plt
 
 from ldm.modules.diffusionmodules.util import make_ddim_sampling_parameters, make_ddim_timesteps, noise_like, \
     extract_into_tensor
@@ -19,9 +18,6 @@ class DDIMSampler(object):
         self.ddpm_num_timesteps = model.num_timesteps
         self.schedule = schedule
         self.loss = torch.nn.MSELoss()
-        self.norm_history = []
-        self.hhi_history = []
-        self.ratio_history = []
 
     def register_buffer(self, name, attr):
         if type(attr) == torch.Tensor:
@@ -196,7 +192,7 @@ class DDIMSampler(object):
                      callback=None, timesteps=None, quantize_denoised=False,
                      mask=None, x0=None, img_callback=None, log_every_t=100,
                      temperature=1., noise_dropout=0., score_corrector=None, corrector_kwargs=None,
-                     unconditional_guidance_scale=1., unconditional_conditioning=None,):
+                     unconditional_guidance_scale=1., unconditional_conditioning=None, a=0.5, A=50, alpha=0.6):
         """
         DDIM-based sampling function for ReSample.
 
@@ -214,11 +210,9 @@ class DDIMSampler(object):
         device = self.model.betas.device
         b = shape[0]
         if x_T is None:
-            img = torch.randn(shape, device=device)
-        else:
-            img = x_T
-        
-        img = img.requires_grad_() # Require grad for data consistency
+            x_T = torch.randn(shape, device=device)
+
+        img = x_T.detach().clone().requires_grad_()
 
         if timesteps is None:
             timesteps = self.ddpm_num_timesteps if ddim_use_original_steps else self.ddim_timesteps
@@ -226,7 +220,7 @@ class DDIMSampler(object):
             subset_end = int(min(timesteps / self.ddim_timesteps.shape[0], 1) * self.ddim_timesteps.shape[0]) - 1
             timesteps = self.ddim_timesteps[:subset_end]
 
-        intermediates = {'x_inter': [img], 'pred_x0': [img]}
+        intermediates = {'x_inter': [img], 'pred_x0': [img], 'x_T,loss': []}
         time_range = reversed(range(0,timesteps)) if ddim_use_original_steps else np.flip(timesteps)
         total_steps = timesteps if ddim_use_original_steps else timesteps.shape[0]
 
@@ -235,135 +229,118 @@ class DDIMSampler(object):
         alphas_prev = self.model.alphas_cumprod_prev if ddim_use_original_steps else self.ddim_alphas_prev
         betas = self.model.betas
 
-        iterator = tqdm(time_range, desc='DDIM Sampler', total=total_steps, disable=True)
+        #print(f"Running DDIM Sampling with {total_steps} timesteps")
 
-        for i, step in enumerate(iterator):        
-            # Instantiating parameters
-            index = total_steps - i - 1
-            ts = torch.full((b,), step, device=device, dtype=torch.long)
-            a_t = torch.full((b, 1, 1, 1), alphas[index], device=device, requires_grad=False) # Needed for ReSampling
-            a_prev = torch.full((b, 1, 1, 1), alphas_prev[index], device=device, requires_grad=False) # Needed for ReSampling
-            b_t = torch.full((b, 1, 1, 1), betas[index], device=device, requires_grad=False)            
+        global_iterator = tqdm(time_range, desc='Z_T optimization', total=total_steps, disable=False)
 
-            if mask is not None:
-                assert x0 is not None
-                img_orig = self.model.q_sample(x0, ts)  # TODO: deterministic forward pass?
-                img = img_orig * mask + (1. - mask) * img
+        for e, end_step in enumerate(global_iterator):
+            iterator = tqdm(time_range[:e+1], desc='DDIM Sampler', disable=True)
 
-            # Unconditional sampling step
-            # pred_x0 is from DDIM, pseudo_x0 is computing \hat{x}_0 using Tweedie's formula
-            out, pred_x0, pseudo_x0 = self.p_sample_ddim(img, cond, ts, index=index, use_original_steps=ddim_use_original_steps,
-                                      quantize_denoised=quantize_denoised, temperature=temperature,
-                                      noise_dropout=noise_dropout, score_corrector=score_corrector,
-                                      corrector_kwargs=corrector_kwargs,
-                                      unconditional_guidance_scale=unconditional_guidance_scale,
-                                      unconditional_conditioning=unconditional_conditioning)
+            img = x_T.detach().clone().requires_grad_()
 
-            #print("Norm", pred_x0.norm().item())
-            #if index % 10 == 0:
-            #    # save img from pred_x0
-            #    
-            #    x_samples_ddim = self.model.decode_first_stage(pred_x0.detach())
-            #    reconstructed = clear_color(x_samples_ddim)
-            #    plt.imsave(os.path.join(f'{ts}_recon.png'), reconstructed)
-        
+            for i, step in enumerate(iterator):        
+                # Instantiating parameters
+                index = total_steps - i - 1
+                ts = torch.full((b,), step, device=device, dtype=torch.long)
+                a_t = torch.full((b, 1, 1, 1), alphas[index], device=device, requires_grad=False) # Needed for ReSampling
+                a_prev = torch.full((b, 1, 1, 1), alphas_prev[index], device=device, requires_grad=False) # Needed for ReSampling
+                b_t = torch.full((b, 1, 1, 1), betas[index], device=device, requires_grad=False)            
 
-            img, _ = measurement_cond_fn(x_t=out, # x_t is x_{t-1}
-                                            measurement=measurement,
-                                            noisy_measurement=measurement,
-                                            x_prev=img, # x_prev is x_t
-                                            x_0_hat=pseudo_x0,
-                                            scale=a_t*.5, # For DPS learning rate / scale
-                                            )
+                if mask is not None:
+                    assert x0 is not None
+                    img_orig = self.model.q_sample(x0, ts)  # TODO: deterministic forward pass?
+                    img = img_orig * mask + (1. - mask) * img
 
-            
-            # Instantiating time-travel parameters
-            splits = 3 # TODO: make this not hard-coded
-            index_split = total_steps // splits
-
-            # Performing time-travel if in selected indices
-            if index <= (total_steps - index_split) and index > 0:   
-
-                if self.opt_change_history[-1] is not None:
-                    with torch.no_grad():
-                        measurement_error = self.loss(measurement, operator_fn( self.model.differentiable_decode_first_stage(img)))
-                        opt_change_norm = torch.linalg.norm(self.opt_change_history[-1].detach())**2
-                        
-                        img = img.detach() + 0.3 * self.opt_change_history[-1]
-                        
-                        #pseudo_x0 = pseudo_x0.detach() + 0.35 * self.opt_change_history[-1]
-
-                    img = img.requires_grad_() # Requiring grad again after adding change
-
-                x_t = img.detach().clone()
-
-                # Performing only every 10 steps (or so)
-                # TODO: also make this not hard-coded
-                if index % 5 == 0 :  
-                    """ for k in range(i, min(i+inter_timesteps, len(list( reversed(timesteps) ))-1)):
-                        step_ = list( reversed(timesteps))[k+1]
-                        ts_ = torch.full((b,), step_, device=device, dtype=torch.long)
-                        index_ = total_steps - k - 1
-
-                        # Obtain x_{t-k}
-                        img, pred_x0, pseudo_x0 = self.p_sample_ddim(img, cond, ts_, index=index_, use_original_steps=ddim_use_original_steps,
-                                            quantize_denoised=quantize_denoised, temperature=temperature,
-                                            noise_dropout=noise_dropout, score_corrector=score_corrector,
-                                            corrector_kwargs=corrector_kwargs,
-                                            unconditional_guidance_scale=unconditional_guidance_scale,
-                                            unconditional_conditioning=unconditional_conditioning) """
-                        
-                    # Some arbitrary scheduling for sigma
-                    if index >= 0:
-                        sigma = 40*(1 - a_prev) / (1 - a_t) * (1 - a_t / a_prev)  
-                    else:
-                        sigma = 0.5
-
-                    # Pixel-based optimization for second stage
-                    if index >= index_split: 
-                        
-                        # Enforcing consistency via pixel-based optimization
-                        pseudo_x0 = pseudo_x0.detach() 
-                        pseudo_x0_pixel = self.model.decode_first_stage(pseudo_x0) # Get \hat{x}_0 into pixel space
-
-                        opt_var = self.pixel_optimization(measurement=measurement, 
-                                                          x_prime=pseudo_x0_pixel,
-                                                          operator_fn=operator_fn)
-                        
-                        opt_var = self.model.encode_first_stage(opt_var) # Going back into latent space
-
-                        img = self.stochastic_resample(pseudo_x0=opt_var, x_t=x_t, a_t=a_prev, sigma=sigma)
-                        img = img.requires_grad_() # Seems to need to require grad here
-
-                    # Latent-based optimization for third stage
-                    elif index < index_split: # Needs to (possibly) be tuned
-
-                        # Enforcing consistency via latent space optimization
-                        pseudo_x0, _ = self.latent_optimization(measurement=measurement,
-                                                             z_init=pseudo_x0.detach(),
-                                                             operator_fn=operator_fn)
+                # Unconditional sampling step
+                # pred_x0 is from DDIM, pseudo_x0 is computing \hat{x}_0 using Tweedie's formula
+                img, pred_x0, pseudo_x0 = self.p_sample_ddim(img, cond, ts, index=index, use_original_steps=ddim_use_original_steps,
+                                        quantize_denoised=quantize_denoised, temperature=temperature,
+                                        noise_dropout=noise_dropout, score_corrector=score_corrector,
+                                        corrector_kwargs=corrector_kwargs,
+                                        unconditional_guidance_scale=unconditional_guidance_scale,
+                                        unconditional_conditioning=unconditional_conditioning)
 
 
-                        sigma = 40 * (1-a_prev)/(1 - a_t) * (1 - a_t / a_prev) # Change the 40 value for each task
+                """img, _ = measurement_cond_fn(x_t=out, # x_t is x_{t-1}
+                                                measurement=measurement,
+                                                noisy_measurement=measurement,
+                                                x_prev=img, # x_prev is x_t
+                                                x_0_hat=pseudo_x0,
+                                                scale=a_t*.5, # For DPS learning rate / scale
+                                                )"""
 
-                        img = self.stochastic_resample(pseudo_x0=pseudo_x0, x_t=x_t, a_t=a_prev, sigma=sigma) 
-
-            # Callback functions if needed
-            if callback: callback(i)
-            if img_callback: img_callback(pred_x0, i)
-            if index % log_every_t == 0 or index == total_steps - 1:
-                intermediates['x_inter'].append(img)
-                intermediates['pred_x0'].append(pred_x0)       
                 
-        psuedo_x0, _ = self.latent_optimization(measurement=measurement,
-                                                             z_init=img.detach(),
-                                                             operator_fn=operator_fn)
-        img = psuedo_x0.detach().clone()
+
+                # Callback functions if needed
+                if callback: callback(i)
+                if img_callback: img_callback(pred_x0, i)
+                if index % log_every_t == 0 or index == total_steps - 1:
+                    intermediates['x_inter'].append(img)
+                    intermediates['pred_x0'].append(pred_x0)       
+                    
+            """ pseudo_x0, _ = self.latent_optimization(measurement=measurement,
+                                                                z_init=img.detach(),
+                                                                operator_fn=operator_fn)
+            img = pseudo_x0.detach().clone()"""
+
+            with torch.no_grad():
+                measurement_loss = self.loss(measurement, operator_fn( self.model.differentiable_decode_first_stage(pred_x0)))
+                intermediates['x_T,loss'].append((x_T.detach().clone(), measurement_loss.item()))
+                if len(intermediates['x_T,loss']) > 10:
+                    ak = a/(i+1+A)**alpha
+                    intermediates['x_T,loss'].pop(0)
+                    grad_X_T = self.SPSA_gradient(intermediates['x_T,loss'])
+                    x_T = x_T - ak * grad_X_T
+                    print("ak", ak, "Grad norm", torch.linalg.norm(grad_X_T).item())
+                else:
+                    x_T = torch.randn(shape, device=device)
+
+            print(f"Measurement Error: {measurement_loss.item()}")
             
         return img, intermediates
 
+    def SPSA_gradient(self, x_T_loss):
+        """
+        Function to compute SPSA gradient for x_T.
+        """
 
-    def pixel_optimization(self, measurement, x_prime, operator_fn, eps=1e-3, max_iters=1000):
+        # Compute the SPSA gradient
+        x_T1, loss1 = x_T_loss[-1]
+        x_T2, loss2 = x_T_loss[-2]
+
+        numerator = loss1 - loss2
+        denominator = x_T1 - x_T2
+
+        # Set a small epsilon threshold
+        eps = 1e-6
+
+        """
+        # Create mask where difference is sufficiently large
+        mask = denominator.abs() > eps 
+
+
+        grad = torch.zeros_like(denominator)
+        grad[mask] = numerator / denominator[mask]
+
+        # Get smallest nonzero |grad| among stable entries
+        nonzero_grads = grad[mask].abs()
+        if nonzero_grads.numel() > 0:
+            min_val = nonzero_grads.min()
+        else:
+            min_val = torch.tensor(0.0, device=grad.device)
+
+        # Random ±1 signs for unstable components
+        num_unstable = (~mask).sum()
+        random_signs = torch.randint(0, 2, (num_unstable,), device=grad.device) * 2 - 1  # ±1
+        grad[~mask] = random_signs * min_val
+        """
+
+        grad = (loss1 - loss2) / (x_T1 - x_T2 + 1e-6)  # Adding a small epsilon to avoid division by zero
+
+        return grad
+
+
+    def pixel_optimization(self, measurement, x_prime, operator_fn, eps=1e-3, max_iters=200):
         """
         Function to compute argmin_x ||y - A(x)||_2^2
 
@@ -390,15 +367,6 @@ class DDIMSampler(object):
             measurement_loss = loss(measurement, operator_fn( opt_var ) ) 
             
             measurement_loss.backward() # Take GD step
-
-            grad_opt_var = opt_var.grad.detach().clone()
-            norm = torch.sum(torch.abs(grad_opt_var)).item()
-            hhi = (torch.sum(grad_opt_var**2)/norm**2).item()
-            ratio = hhi/ norm
-            self.norm_history.append(norm)
-            self.hhi_history.append(hhi)
-            self.ratio_history.append(ratio)
-
             optimizer.step()
 
             # Convergence criteria
@@ -408,7 +376,7 @@ class DDIMSampler(object):
         return opt_var
 
 
-    def latent_optimization(self, measurement, z_init, operator_fn, eps=1e-3, max_iters=250, lr=None):
+    def latent_optimization(self, measurement, z_init, operator_fn, eps=1e-3, max_iters=50, lr=None):
 
         """
         Function to compute argmin_z ||y - A( D(z) )||_2^2
@@ -445,20 +413,12 @@ class DDIMSampler(object):
         
         for itr in range(max_iters):
             optimizer.zero_grad()
-            output = loss(measurement, operator_fn( self.model.differentiable_decode_first_stage( z_init ) ))  
+            output = loss(measurement, operator_fn( self.model.differentiable_decode_first_stage( z_init ) ))          
 
             if itr == 0:
                 init_loss = output.detach().clone()
                 
             output.backward() # Take GD step
-            grad_z_init = z_init.grad.detach().clone()
-            norm = torch.sum(torch.abs(grad_z_init)).item()
-            hhi = (torch.sum(grad_z_init**2)/norm**2).item()
-            ratio = hhi/ norm
-            self.norm_history.append(norm)
-            self.hhi_history.append(hhi)
-            self.ratio_history.append(ratio)
-  
             optimizer.step()
             cur_loss = output.detach().cpu().numpy() 
             
@@ -590,7 +550,8 @@ class DDIMSampler(object):
         # select parameters corresponding to the currently considered timestep
         a_t = torch.full((b, 1, 1, 1), alphas[index], device=device)
         a_prev = torch.full((b, 1, 1, 1), alphas_prev[index], device=device)
-        sigma_t = torch.full((b, 1, 1, 1), sigmas[index], device=device)
+        #sigma_t = torch.full((b, 1, 1, 1), sigmas[index], device=device)
+        sigma_t = torch.full((b, 1, 1, 1), 0, device=device)
         sqrt_one_minus_at = torch.full((b, 1, 1, 1), sqrt_one_minus_alphas[index],device=device)
 
         # current prediction for x_0
@@ -599,10 +560,10 @@ class DDIMSampler(object):
             pred_x0, _, *_ = self.model.first_stage_model.quantize(pred_x0)
         # direction pointing to x_t
         dir_xt = (1. - a_prev - sigma_t**2).sqrt() * e_t
-        noise = sigma_t * noise_like(x.shape, device, repeat_noise) * temperature
+        """ noise = sigma_t * noise_like(x.shape, device, repeat_noise) * temperature
         if noise_dropout > 0.:
-            noise = torch.nn.functional.dropout(noise, p=noise_dropout)
-        x_prev = a_prev.sqrt() * pred_x0 + dir_xt + noise
+            noise = torch.nn.functional.dropout(noise, p=noise_dropout) """
+        x_prev = a_prev.sqrt() * pred_x0 + dir_xt # + noise
 
         # Computing \hat{x}_0 via Tweedie's formula
         pseudo_x0 = (x - (sqrt_one_minus_at) * e_t) / a_t.sqrt()

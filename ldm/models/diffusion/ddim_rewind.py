@@ -5,7 +5,6 @@ import numpy as np
 from tqdm import tqdm
 from functools import partial
 from scripts.utils import *
-import matplotlib.pyplot as plt
 
 from ldm.modules.diffusionmodules.util import make_ddim_sampling_parameters, make_ddim_timesteps, noise_like, \
     extract_into_tensor
@@ -15,13 +14,10 @@ from scripts.utils import clear_color
 class DDIMSampler(object):
     def __init__(self, model, schedule="linear", **kwargs):
         super().__init__()
-        self.model = model
+        self.model = model.to()
         self.ddpm_num_timesteps = model.num_timesteps
         self.schedule = schedule
         self.loss = torch.nn.MSELoss()
-        self.norm_history = []
-        self.hhi_history = []
-        self.ratio_history = []
 
     def register_buffer(self, name, attr):
         if type(attr) == torch.Tensor:
@@ -196,7 +192,7 @@ class DDIMSampler(object):
                      callback=None, timesteps=None, quantize_denoised=False,
                      mask=None, x0=None, img_callback=None, log_every_t=100,
                      temperature=1., noise_dropout=0., score_corrector=None, corrector_kwargs=None,
-                     unconditional_guidance_scale=1., unconditional_conditioning=None,):
+                     unconditional_guidance_scale=1., unconditional_conditioning=None, block=24, rewind=12):
         """
         DDIM-based sampling function for ReSample.
 
@@ -210,7 +206,6 @@ class DDIMSampler(object):
 
         self.opt_change_history = [None for _ in range(4)]
 
-        inter_timesteps = 5
         device = self.model.betas.device
         b = shape[0]
         if x_T is None:
@@ -232,18 +227,30 @@ class DDIMSampler(object):
 
         # Need for measurement consistency
         alphas = self.model.alphas_cumprod if ddim_use_original_steps else self.ddim_alphas 
+        sqrt_one_minus_alphas  = self.model.sqrt_one_minus_alphas_cumprod if ddim_use_original_steps else self.ddim_sqrt_one_minus_alphas
         alphas_prev = self.model.alphas_cumprod_prev if ddim_use_original_steps else self.ddim_alphas_prev
         betas = self.model.betas
+        sigmas = self.ddim_sigmas_for_original_num_steps if ddim_use_original_steps else self.ddim_sigmas
 
-        iterator = tqdm(time_range, desc='DDIM Sampler', total=total_steps, disable=True)
+        rewind_time_range = self.staggered_indices(time_range, block_size=block, step_back=rewind)
+
+        iterator = tqdm(rewind_time_range, desc='DDIM Sampler', disable=True)
 
         for i, step in enumerate(iterator):        
             # Instantiating parameters
-            index = total_steps - i - 1
+            index = (step+1)//2 - 1
+            if i+1 < len(rewind_time_range):
+                prev_index = (rewind_time_range[i+1]+1)//2 - 1
+            else:
+                prev_index = -1
             ts = torch.full((b,), step, device=device, dtype=torch.long)
-            a_t = torch.full((b, 1, 1, 1), alphas[index], device=device, requires_grad=False) # Needed for ReSampling
-            a_prev = torch.full((b, 1, 1, 1), alphas_prev[index], device=device, requires_grad=False) # Needed for ReSampling
-            b_t = torch.full((b, 1, 1, 1), betas[index], device=device, requires_grad=False)            
+            self.a_t = torch.full((b, 1, 1, 1), alphas[index], device=device, requires_grad=False) # Needed for ReSampling
+            self.sqrt_one_minus_at = torch.full((b, 1, 1, 1), sqrt_one_minus_alphas[index], device=device, requires_grad=False)
+            if prev_index >= 0:
+                self.a_prev = torch.full((b, 1, 1, 1), alphas[prev_index], device=device, requires_grad=False)
+            else:
+                self.a_prev = torch.full((b, 1, 1, 1), alphas_prev[0], device=device, requires_grad=False)
+            self.sigma_t = torch.full((b, 1, 1, 1), sigmas[index], device=device, requires_grad=False)          
 
             if mask is not None:
                 assert x0 is not None
@@ -259,23 +266,13 @@ class DDIMSampler(object):
                                       unconditional_guidance_scale=unconditional_guidance_scale,
                                       unconditional_conditioning=unconditional_conditioning)
 
-            #print("Norm", pred_x0.norm().item())
-            #if index % 10 == 0:
-            #    # save img from pred_x0
-            #    
-            #    x_samples_ddim = self.model.decode_first_stage(pred_x0.detach())
-            #    reconstructed = clear_color(x_samples_ddim)
-            #    plt.imsave(os.path.join(f'{ts}_recon.png'), reconstructed)
-        
-
             img, _ = measurement_cond_fn(x_t=out, # x_t is x_{t-1}
                                             measurement=measurement,
                                             noisy_measurement=measurement,
                                             x_prev=img, # x_prev is x_t
                                             x_0_hat=pseudo_x0,
-                                            scale=a_t*.5, # For DPS learning rate / scale
+                                            scale=self.a_t*.5, # For DPS learning rate / scale
                                             )
-
             
             # Instantiating time-travel parameters
             splits = 3 # TODO: make this not hard-coded
@@ -286,11 +283,8 @@ class DDIMSampler(object):
 
                 if self.opt_change_history[-1] is not None:
                     with torch.no_grad():
-                        measurement_error = self.loss(measurement, operator_fn( self.model.differentiable_decode_first_stage(img)))
-                        opt_change_norm = torch.linalg.norm(self.opt_change_history[-1].detach())**2
                         
-                        img = img.detach() + 0.3 * self.opt_change_history[-1]
-                        
+                        img = img.detach() + 0.0 * self.opt_change_history[-1]
                         #pseudo_x0 = pseudo_x0.detach() + 0.35 * self.opt_change_history[-1]
 
                     img = img.requires_grad_() # Requiring grad again after adding change
@@ -299,7 +293,7 @@ class DDIMSampler(object):
 
                 # Performing only every 10 steps (or so)
                 # TODO: also make this not hard-coded
-                if index % 5 == 0 :  
+                if index < prev_index:  
                     """ for k in range(i, min(i+inter_timesteps, len(list( reversed(timesteps) ))-1)):
                         step_ = list( reversed(timesteps))[k+1]
                         ts_ = torch.full((b,), step_, device=device, dtype=torch.long)
@@ -315,7 +309,7 @@ class DDIMSampler(object):
                         
                     # Some arbitrary scheduling for sigma
                     if index >= 0:
-                        sigma = 40*(1 - a_prev) / (1 - a_t) * (1 - a_t / a_prev)  
+                        sigma = 40*(1 - self.a_prev) / (1 - self.a_t) * (1 - self.a_t / self.a_prev)  
                     else:
                         sigma = 0.5
 
@@ -332,7 +326,7 @@ class DDIMSampler(object):
                         
                         opt_var = self.model.encode_first_stage(opt_var) # Going back into latent space
 
-                        img = self.stochastic_resample(pseudo_x0=opt_var, x_t=x_t, a_t=a_prev, sigma=sigma)
+                        img = self.stochastic_resample(pseudo_x0=opt_var, x_t=x_t, a_t=self.a_prev, sigma=sigma)
                         img = img.requires_grad_() # Seems to need to require grad here
 
                     # Latent-based optimization for third stage
@@ -344,9 +338,9 @@ class DDIMSampler(object):
                                                              operator_fn=operator_fn)
 
 
-                        sigma = 40 * (1-a_prev)/(1 - a_t) * (1 - a_t / a_prev) # Change the 40 value for each task
+                        sigma = 40 * (1-self.a_prev)/(1 - self.a_t) * (1 - self.a_t / self.a_prev) # Change the 40 value for each task
 
-                        img = self.stochastic_resample(pseudo_x0=pseudo_x0, x_t=x_t, a_t=a_prev, sigma=sigma) 
+                        img = self.stochastic_resample(pseudo_x0=pseudo_x0, x_t=x_t, a_t=self.a_prev, sigma=sigma) 
 
             # Callback functions if needed
             if callback: callback(i)
@@ -362,8 +356,20 @@ class DDIMSampler(object):
             
         return img, intermediates
 
+    def staggered_indices(self, original, block_size=10, step_back=5):
+        idx = 0
+        result = []
+        length = len(original)
+        while True:
+            end = min(idx + block_size, length)
+            result.extend(original[idx:end])
+            if end - idx == step_back:
+                break
+            idx = end - step_back
+        return np.array(result)
 
-    def pixel_optimization(self, measurement, x_prime, operator_fn, eps=1e-3, max_iters=1000):
+
+    def pixel_optimization(self, measurement, x_prime, operator_fn, eps=1e-3, max_iters=200):
         """
         Function to compute argmin_x ||y - A(x)||_2^2
 
@@ -390,15 +396,6 @@ class DDIMSampler(object):
             measurement_loss = loss(measurement, operator_fn( opt_var ) ) 
             
             measurement_loss.backward() # Take GD step
-
-            grad_opt_var = opt_var.grad.detach().clone()
-            norm = torch.sum(torch.abs(grad_opt_var)).item()
-            hhi = (torch.sum(grad_opt_var**2)/norm**2).item()
-            ratio = hhi/ norm
-            self.norm_history.append(norm)
-            self.hhi_history.append(hhi)
-            self.ratio_history.append(ratio)
-
             optimizer.step()
 
             # Convergence criteria
@@ -408,7 +405,7 @@ class DDIMSampler(object):
         return opt_var
 
 
-    def latent_optimization(self, measurement, z_init, operator_fn, eps=1e-3, max_iters=250, lr=None):
+    def latent_optimization(self, measurement, z_init, operator_fn, eps=1e-3, max_iters=50, lr=None):
 
         """
         Function to compute argmin_z ||y - A( D(z) )||_2^2
@@ -445,20 +442,12 @@ class DDIMSampler(object):
         
         for itr in range(max_iters):
             optimizer.zero_grad()
-            output = loss(measurement, operator_fn( self.model.differentiable_decode_first_stage( z_init ) ))  
+            output = loss(measurement, operator_fn( self.model.differentiable_decode_first_stage( z_init ) ))          
 
             if itr == 0:
                 init_loss = output.detach().clone()
                 
             output.backward() # Take GD step
-            grad_z_init = z_init.grad.detach().clone()
-            norm = torch.sum(torch.abs(grad_z_init)).item()
-            hhi = (torch.sum(grad_z_init**2)/norm**2).item()
-            ratio = hhi/ norm
-            self.norm_history.append(norm)
-            self.hhi_history.append(hhi)
-            self.ratio_history.append(ratio)
-  
             optimizer.step()
             cur_loss = output.detach().cpu().numpy() 
             
@@ -582,30 +571,20 @@ class DDIMSampler(object):
             assert self.model.parameterization == "eps"
             e_t = score_corrector.modify_score(self.model, e_t, x, t, c, **corrector_kwargs)
 
-        alphas = self.model.alphas_cumprod if use_original_steps else self.ddim_alphas
-        alphas_prev = self.model.alphas_cumprod_prev if use_original_steps else self.ddim_alphas_prev
-        sqrt_one_minus_alphas = self.model.sqrt_one_minus_alphas_cumprod if use_original_steps else self.ddim_sqrt_one_minus_alphas
-        sigmas = self.ddim_sigmas_for_original_num_steps if use_original_steps else self.ddim_sigmas
-
-        # select parameters corresponding to the currently considered timestep
-        a_t = torch.full((b, 1, 1, 1), alphas[index], device=device)
-        a_prev = torch.full((b, 1, 1, 1), alphas_prev[index], device=device)
-        sigma_t = torch.full((b, 1, 1, 1), sigmas[index], device=device)
-        sqrt_one_minus_at = torch.full((b, 1, 1, 1), sqrt_one_minus_alphas[index],device=device)
 
         # current prediction for x_0
-        pred_x0 = (x - sqrt_one_minus_at * e_t) / a_t.sqrt()
+        pred_x0 = (x - self.sqrt_one_minus_at * e_t) / self.a_t.sqrt()
         if quantize_denoised:
             pred_x0, _, *_ = self.model.first_stage_model.quantize(pred_x0)
         # direction pointing to x_t
-        dir_xt = (1. - a_prev - sigma_t**2).sqrt() * e_t
-        noise = sigma_t * noise_like(x.shape, device, repeat_noise) * temperature
+        dir_xt = (1. - self.a_prev - self.sigma_t**2).sqrt() * e_t
+        noise = self.sigma_t * noise_like(x.shape, device, repeat_noise) * temperature
         if noise_dropout > 0.:
             noise = torch.nn.functional.dropout(noise, p=noise_dropout)
-        x_prev = a_prev.sqrt() * pred_x0 + dir_xt + noise
+        x_prev = self.a_prev.sqrt() * pred_x0 + dir_xt + noise
 
         # Computing \hat{x}_0 via Tweedie's formula
-        pseudo_x0 = (x - (sqrt_one_minus_at) * e_t) / a_t.sqrt()
+        pseudo_x0 = (x - self.sqrt_one_minus_at * e_t) / self.a_t.sqrt()
         return x_prev, pred_x0, pseudo_x0
 
 
