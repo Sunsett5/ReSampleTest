@@ -19,6 +19,7 @@ class DDIMSampler(object):
         self.ddpm_num_timesteps = model.num_timesteps
         self.schedule = schedule
         self.loss = torch.nn.MSELoss()
+        self.opt_change_history = [None for _ in range(4)]  # History of optimization changes
 
     def register_buffer(self, name, attr):
         if type(attr) == torch.Tensor:
@@ -193,7 +194,7 @@ class DDIMSampler(object):
                      callback=None, timesteps=None, quantize_denoised=False,
                      mask=None, x0=None, img_callback=None, log_every_t=100,
                      temperature=1., noise_dropout=0., score_corrector=None, corrector_kwargs=None,
-                     unconditional_guidance_scale=1., unconditional_conditioning=None, block=500, rewind=0):
+                     unconditional_guidance_scale=1., unconditional_conditioning=None, block=500, rewind=0, start_monotone_opt=100):
         """
         DDIM-based sampling function for ReSample.
 
@@ -254,12 +255,12 @@ class DDIMSampler(object):
             # Unconditional sampling step
             # pred_x0 is from DDIM
 
-            if index % 20 == 0 and index < 200:
+            if index % 5 == 0 and index < start_monotone_opt:
                 img_decoded = self.model.decode_first_stage(img.detach()) # Decode the latent space into pixel space
                 reconstructed = clear_color(img_decoded)
                 plt.imsave(f'{index}_before_opt.png', reconstructed)
                 img = self.monotone_optimization(img, cond, measurement, ts, index, prev_index, ddim_use_original_steps, quantize_denoised, temperature, noise_dropout, 
-                            score_corrector, corrector_kwargs, unconditional_guidance_scale, unconditional_conditioning, n_shots=4, operator_fn=operator_fn, eps=1e-3, max_iters=20)
+                            score_corrector, corrector_kwargs, unconditional_guidance_scale, unconditional_conditioning, n_shots=4, operator_fn=operator_fn, eps=1e-3, max_iters=30)
                 img_decoded = self.model.decode_first_stage(img.detach()) # Decode the latent space into pixel space
                 reconstructed = clear_color(img_decoded)
                 plt.imsave(f'{index}_after_opt.png', reconstructed)
@@ -280,24 +281,24 @@ class DDIMSampler(object):
             #img = out.detach().clone() # Detaching to avoid gradient flow from here
 
             img, _ = measurement_cond_fn(x_t=out, # x_t is x_{t-1}
-                                            measurement=measurement,
-                                            noisy_measurement=measurement,
-                                            x_prev=img, # x_prev is x_t
-                                            x_0_hat=pred_x0,
-                                            scale=a_t*.5, # For DPS learning rate / scale
-                                            )
-            
+                                        measurement=measurement,
+                                        noisy_measurement=measurement,
+                                        x_prev=img, # x_prev is x_t
+                                        x_0_hat=pred_x0,
+                                        scale=a_t*.5, # For DPS learning rate / scale
+                                        )
+                
             # Instantiating time-travel parameters
             splits = 3 # TODO: make this not hard-coded
             index_split = total_steps // splits
 
             # Performing time-travel if in selected indices
-            if index <= (total_steps - index_split) and index > 0:   
+            if not (index % 5 == 0 and index < start_monotone_opt):  
 
                 if self.opt_change_history[-1] is not None:
                     with torch.no_grad():
                         
-                        img = img.detach() + 0.3 * self.opt_change_history[-1]
+                        img = img.detach() + 0.0 * self.opt_change_history[-1]
                         #pred_x0 = pred_x0.detach() + 0.35 * self.opt_change_history[-1]
 
                     img = img.requires_grad_() # Requiring grad again after adding change
@@ -354,28 +355,30 @@ class DDIMSampler(object):
                 intermediates['x_inter'].append(img)
                 intermediates['pred_x0'].append(pred_x0)       
                 
-        psuedo_x0, _ = self.latent_optimization(measurement=measurement,
+        pred_x0, _ = self.latent_optimization(measurement=measurement,
                                                              z_init=img.detach(),
                                                              operator_fn=operator_fn)
-        img = psuedo_x0.detach().clone()
+        img = pred_x0.detach().clone()
             
         return img, intermediates
     
     def monotone_optimization(self, x_t, cond, measurement, t, original_index, original_prev_index, use_original_steps, quantize_denoised, temperature, noise_dropout, score_corrector, 
-                            corrector_kwargs, unconditional_guidance_scale, unconditional_conditioning, n_shots=4, operator_fn=None, eps=1e-3, max_iters=50):
+                            corrector_kwargs, unconditional_guidance_scale, unconditional_conditioning, n_shots=4, operator_fn=None, eps=1e-3, max_iters=20):
         
         opt_var = x_t.detach().clone()
+        pre_opt = opt_var.clone()
         opt_var = opt_var.requires_grad_()
-        optimizer = torch.optim.AdamW([opt_var], lr=1e-1) # Initializing optimizer
-        measurement = measurement.detach() # Need to detach for weird PyTorch reasons
+        optimizer = torch.optim.AdamW([opt_var], lr=1e-1)
+        measurement = measurement.detach()
 
         # Training loop
 
         for i in range(max_iters):
             optimizer.zero_grad()
 
-            out, pred_x0, measurement_losses = self.precise_tweedie(opt_var, cond, measurement, operator_fn, t, original_index, original_prev_index, use_original_steps, quantize_denoised, temperature, noise_dropout, 
+            _, _, measurement_losses = self.precise_tweedie(opt_var, cond, measurement, operator_fn, t, original_index, original_prev_index, use_original_steps, quantize_denoised, temperature, noise_dropout, 
                             score_corrector, corrector_kwargs, unconditional_guidance_scale, unconditional_conditioning, n_shots)
+            
             
             average_loss = torch.dot(measurement_losses, torch.ones_like(measurement_losses)) / measurement_losses.shape[0] # Average loss
             if len(measurement_losses) > 1:
@@ -383,24 +386,65 @@ class DDIMSampler(object):
             else:
                 loss_ratio = torch.tensor([1.0], device=measurement_losses.device)
 
-            print(measurement_losses)
+            adjusted_loss = average_loss * torch.exp(0.0*(torch.mean(loss_ratio)-1)) # Adjusting loss based on the ratio of losses
 
-            print("Ratio", torch.mean(loss_ratio))
-
-            adjusted_loss = average_loss * torch.exp(3*torch.mean(loss_ratio)-1) # Adjusting loss based on the ratio of losses
+            #print(f"Iteration {i}, Loss: {adjusted_loss.item()}, Ratio: {loss_ratio.mean().item()}")
             
             adjusted_loss.backward() # Take GD step
             optimizer.step()
 
-            #print(f"Loss at step {i}: {loss.item()}")
-
             # Convergence criteria
             if adjusted_loss < eps**2: # needs tuning according to noise level for early stopping
                 break
+
+        self.opt_change_history.append(opt_var.detach().clone() - pre_opt)
+        del self.opt_change_history[0]
+
+        for lag in range(len(self.opt_change_history) - 1, 0, -1):
+            if self.opt_change_history[lag-1] is not None:
+                opt_cosine_similarity = torch.nn.functional.cosine_similarity(self.opt_change_history[lag].view(-1), self.opt_change_history[lag-1].view(-1), dim=0)
+                print("LAG", len(self.opt_change_history)-lag, "Opt Cosine", opt_cosine_similarity.item())
         
         return opt_var
-                              
+    
+    def monotone_optimization_broken(self, x_t, cond, measurement, t, original_index, original_prev_index, use_original_steps, quantize_denoised, temperature, noise_dropout, score_corrector, 
+                            corrector_kwargs, unconditional_guidance_scale, unconditional_conditioning, n_shots=4, operator_fn=None, eps=1e-3, max_iters=50):
         
+        opt_var = x_t.detach().clone()
+        pre_opt = opt_var.clone()
+        opt_var = opt_var.requires_grad_()
+        optimizer = torch.optim.LBFGS([opt_var], lr=1.0e-1, line_search_fn='strong_wolfe')
+        measurement = measurement.detach()
+
+        # Training loop
+        def closure():
+            optimizer.zero_grad()
+
+            _, _, measurement_losses = self.precise_tweedie(opt_var, cond, measurement, operator_fn, t, original_index, original_prev_index, use_original_steps, quantize_denoised, temperature, noise_dropout, 
+                            score_corrector, corrector_kwargs, unconditional_guidance_scale, unconditional_conditioning, n_shots)
+            
+            
+            average_loss = torch.dot(measurement_losses, torch.ones_like(measurement_losses)) / measurement_losses.shape[0] # Average loss
+
+            if len(measurement_losses) > 1:
+                loss_ratio = measurement_losses[1:] / measurement_losses[:-1]
+            else:
+                loss_ratio = torch.tensor([1.0], device=measurement_losses.device)
+
+            adjusted_loss = average_loss * torch.exp(0.1*(torch.mean(loss_ratio)-1)) # Adjusting loss based on the ratio of losses
+
+            print(f"Iteration {optimizer.state['n_iter']}, Loss: {adjusted_loss.item()}, Ratio: {loss_ratio.mean().item()}")
+
+            return adjusted_loss
+        
+        for i in range(max_iters):  # external iterations
+            loss = optimizer.step(closure)
+            print(f"Outer iteration {i}, loss = {loss.item()}")
+            
+        self.opt_change_history.append(opt_var.detach().clone() - pre_opt)
+        del self.opt_change_history[0]
+        
+        return opt_var
 
     def staggered_indices(self, original, block_size=10, step_back=5):
         idx = 0
@@ -511,26 +555,6 @@ class DDIMSampler(object):
             if cur_loss < eps**2:  # needs tuning according to noise level for early stopping
                 break
 
-        opt_change = z_init.detach() - z_init_orig
-
-        """ if self.x_0_history[-1] is not None:
-            current_delta_x0 = z_init - self.x_0_history[-1]
-        for lag in range(len(self.x_0_history) - 1, 0, -1):
-            if self.x_0_history[lag-1] is not None:
-                prev_delta_x0 = self.x_0_history[lag] -  self.x_0_history[lag-1]
-                cosine_similarity = torch.nn.functional.cosine_similarity(current_delta_x0.view(-1), prev_delta_x0.view(-1), dim=0)
-                print("LAG", len(self.x_0_history)-lag, "Cosine", cosine_similarity.item())
-            if self.opt_change_history[lag-1] is not None:
-                opt_cosine_similarity = torch.nn.functional.cosine_similarity(opt_change.view(-1), self.opt_change_history[lag-1].view(-1), dim=0)
-                print("LAG", len(self.opt_change_history)-lag, "Opt Cosine", opt_cosine_similarity.item()) """
-
-        self.opt_change_history.append(opt_change.detach().clone())
-        #self.opt_change_plot.append(torch.linalg.norm(opt_change.detach()).item())
-        del self.opt_change_history[0]
-
-        #self.x_0_history.append(z_init.detach().clone())
-        #l self.x_0_history[0]
-
         return z_init, init_loss       
 
 
@@ -599,7 +623,7 @@ class DDIMSampler(object):
         return img, intermediates
     
     def precise_tweedie(self, x, c, measurement, operator_fn, t, original_index, original_prev_index, use_original_steps, quantize_denoised, temperature, noise_dropout, 
-                        score_corrector, corrector_kwargs, unconditional_guidance_scale, unconditional_conditioning, repeat_noise=False, n_shots=4):
+                        score_corrector, corrector_kwargs, unconditional_guidance_scale, unconditional_conditioning, n_shots=4):
         b, *_, device = *x.shape, x.device
         step_size = t//n_shots
         time_steps = [((t - i*step_size)//2)*2 +1 for i in range(0, n_shots)] + [torch.tensor(-1)]
@@ -608,8 +632,6 @@ class DDIMSampler(object):
         x_inter = x.clone()
 
         losses = torch.zeros((len(time_steps)-1,)).to(device)
-
-        #print([step.item() for step in time_steps])
 
         for i, step in enumerate(time_steps[:-1]):
             index = (step.item()+1)//2 - 1
@@ -628,19 +650,19 @@ class DDIMSampler(object):
             a_prev = torch.full((b, 1, 1, 1), self.alphas[original_prev_index], device=device, requires_grad=False)
         else:
             a_prev = torch.full((b, 1, 1, 1), self.alphas_prev[0], device=device, requires_grad=False) 
-        sigma_t = torch.full((b, 1, 1, 1), self.sigmas[original_index], device=device, requires_grad=False) 
             
         e_t = (x - pred_x0 * a_t.sqrt())/sqrt_one_minus_at
         
-        sigma_t = torch.full((b, 1, 1, 1), self.sigmas[original_index], device=device, requires_grad=False) 
-        dir_xt = (1. - a_prev - sigma_t**2).sqrt() * e_t
-        noise = sigma_t * noise_like(x.shape, device, repeat_noise) * temperature
-        x_prev = a_prev.sqrt() * + dir_xt + noise
+        #sigma_t = torch.full((b, 1, 1, 1), self.sigmas[original_index], device=device, requires_grad=False) 
+        #sigma_t = torch.full((b, 1, 1, 1), 0, device=device, requires_grad=False) 
+        dir_xt = (1. - a_prev).sqrt() * e_t
+        #noise = sigma_t * noise_like(x.shape, device, repeat_noise) * temperature
+        x_prev = a_prev.sqrt() * + dir_xt
             
         return x_prev, pred_x0, losses
 
 
-    def p_sample_ddim(self, x, c, t, index, prev_index, repeat_noise=False, use_original_steps=False, quantize_denoised=False,
+    def p_sample_ddim(self, x, c, t, index, prev_index, use_original_steps=False, quantize_denoised=False,
                       temperature=1., noise_dropout=0., score_corrector=None, corrector_kwargs=None,
                       unconditional_guidance_scale=1., unconditional_conditioning=None, n_shots=4):
         b, *_, device = *x.shape, x.device
@@ -652,7 +674,8 @@ class DDIMSampler(object):
             a_prev = torch.full((b, 1, 1, 1), self.alphas[prev_index], device=device, requires_grad=False)
         else:
             a_prev = torch.full((b, 1, 1, 1), self.alphas_prev[0], device=device, requires_grad=False) 
-        sigma_t = torch.full((b, 1, 1, 1), self.sigmas[index], device=device, requires_grad=False) 
+        #sigma_t = torch.full((b, 1, 1, 1), self.sigmas[index], device=device, requires_grad=False) 
+        #sigma_t = torch.full((b, 1, 1, 1), 0, device=device, requires_grad=False)
 
         if unconditional_conditioning is None or unconditional_guidance_scale == 1.:
             e_t = self.model.apply_model(x, t, c)
@@ -672,11 +695,11 @@ class DDIMSampler(object):
         if quantize_denoised:
             pred_x0, _, *_ = self.model.first_stage_model.quantize(pred_x0)
         # direction pointing to x_t
-        dir_xt = (1. - a_prev - sigma_t**2).sqrt() * e_t
-        noise = sigma_t * noise_like(x.shape, device, repeat_noise) * temperature
+        dir_xt = (1. - a_prev).sqrt() * e_t
+        #noise = sigma_t * noise_like(x.shape, device, repeat_noise) * temperature
         if noise_dropout > 0.:
             noise = torch.nn.functional.dropout(noise, p=noise_dropout)
-        x_prev = a_prev.sqrt() * pred_x0 + dir_xt + noise
+        x_prev = a_prev.sqrt() * pred_x0 + dir_xt
 
         return x_prev, pred_x0, e_t
 
