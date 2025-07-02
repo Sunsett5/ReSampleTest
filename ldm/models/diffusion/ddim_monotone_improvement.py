@@ -216,6 +216,7 @@ class DDIMSampler(object):
             img = x_T
         
         img = img.requires_grad_() # Require grad for data consistency
+        self.noise = noise_like(img.shape, device) # Noise for DDIM sampling
 
         if timesteps is None:
             timesteps = self.ddpm_num_timesteps if ddim_use_original_steps else self.ddim_timesteps
@@ -236,7 +237,7 @@ class DDIMSampler(object):
 
         rewind_time_range = self.staggered_indices(time_range, block_size=block, step_back=rewind)
 
-        iterator = tqdm(rewind_time_range, desc='DDIM Sampler', disable=False)
+        iterator = tqdm(rewind_time_range, desc='DDIM Sampler', disable=True)
 
         for i, step in enumerate(iterator):   
             # Instantiating parameters
@@ -278,15 +279,18 @@ class DDIMSampler(object):
             else:
                 a_prev = torch.full((b, 1, 1, 1), self.alphas_prev[0], device=device, requires_grad=False)
 
-            #img = out.detach().clone() # Detaching to avoid gradient flow from here
+            
+            if index >= start_monotone_opt:
 
-            img, _ = measurement_cond_fn(x_t=out, # x_t is x_{t-1}
-                                        measurement=measurement,
-                                        noisy_measurement=measurement,
-                                        x_prev=img, # x_prev is x_t
-                                        x_0_hat=pred_x0,
-                                        scale=a_t*.5, # For DPS learning rate / scale
-                                        )
+                img, _ = measurement_cond_fn(x_t=out, # x_t is x_{t-1}
+                                            measurement=measurement,
+                                            noisy_measurement=measurement,
+                                            x_prev=img, # x_prev is x_t
+                                            x_0_hat=pred_x0,
+                                            scale=a_t*.5, # For DPS learning rate / scale
+                                            )
+            else:
+                img = out.detach().clone() # Detaching to avoid gradient flow from here
                 
             # Instantiating time-travel parameters
             splits = 3 # TODO: make this not hard-coded
@@ -403,7 +407,8 @@ class DDIMSampler(object):
         for lag in range(len(self.opt_change_history) - 1, 0, -1):
             if self.opt_change_history[lag-1] is not None:
                 opt_cosine_similarity = torch.nn.functional.cosine_similarity(self.opt_change_history[lag].view(-1), self.opt_change_history[lag-1].view(-1), dim=0)
-                print("LAG", len(self.opt_change_history)-lag, "Opt Cosine", opt_cosine_similarity.item())
+                #print("LAG", len(self.opt_change_history)-lag, "Opt Cosine", opt_cosine_similarity.item())
+
         
         return opt_var
     
@@ -636,6 +641,7 @@ class DDIMSampler(object):
         for i, step in enumerate(time_steps[:-1]):
             index = (step.item()+1)//2 - 1
             prev_index = (time_steps[i+1].item()+1)//2 - 1
+            
             x_inter, pred_x0, _ = self.p_sample_ddim(x_inter, c, step, index=index, prev_index=prev_index, use_original_steps=use_original_steps,
                                       quantize_denoised=quantize_denoised, temperature=temperature,
                                       noise_dropout=noise_dropout, score_corrector=score_corrector,

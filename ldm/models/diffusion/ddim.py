@@ -271,8 +271,8 @@ class DDIMSampler(object):
 
                 # Performing only every 10 steps (or so)
                 # TODO: also make this not hard-coded
-                if index % 10 == 0 :  
-                    """ for k in range(i, min(i+inter_timesteps, len(list( reversed(timesteps) ))-1)):
+                if index % 5 == 0 :  
+                    for k in range(i, min(i+inter_timesteps, len(list( reversed(timesteps) ))-1)):
                         step_ = list( reversed(timesteps))[k+1]
                         ts_ = torch.full((b,), step_, device=device, dtype=torch.long)
                         index_ = total_steps - k - 1
@@ -283,7 +283,7 @@ class DDIMSampler(object):
                                             noise_dropout=noise_dropout, score_corrector=score_corrector,
                                             corrector_kwargs=corrector_kwargs,
                                             unconditional_guidance_scale=unconditional_guidance_scale,
-                                            unconditional_conditioning=unconditional_conditioning) """
+                                            unconditional_conditioning=unconditional_conditioning)
                         
                     # Some arbitrary scheduling for sigma
                     if index >= 0:

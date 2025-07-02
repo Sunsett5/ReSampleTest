@@ -234,7 +234,7 @@ class DDIMSampler(object):
 
         rewind_time_range = self.staggered_indices(time_range, block_size=block, step_back=rewind)
 
-        iterator = tqdm(rewind_time_range, desc='DDIM Sampler', disable=True)
+        iterator = tqdm(rewind_time_range, desc='DDIM Sampler', disable=False)
 
         for i, step in enumerate(iterator):        
             # Instantiating parameters
