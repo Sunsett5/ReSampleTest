@@ -216,7 +216,7 @@ class DDIMSampler(object):
             img = x_T
         
         img = img.requires_grad_() # Require grad for data consistency
-        self.noise = noise_like(img.shape, device) # Noise for DDIM sampling
+        self.noise = noise_like(img.shape, device)
 
         if timesteps is None:
             timesteps = self.ddpm_num_timesteps if ddim_use_original_steps else self.ddim_timesteps
@@ -236,8 +236,9 @@ class DDIMSampler(object):
         self.sigmas = self.ddim_sigmas_for_original_num_steps if ddim_use_original_steps else self.ddim_sigmas.to(device)
 
         rewind_time_range = self.staggered_indices(time_range, block_size=block, step_back=rewind)
+        print(rewind_time_range)
 
-        iterator = tqdm(rewind_time_range, desc='DDIM Sampler', disable=True)
+        iterator = tqdm(rewind_time_range, desc='DDIM Sampler', disable=False)
 
         for i, step in enumerate(iterator):   
             # Instantiating parameters
@@ -255,16 +256,6 @@ class DDIMSampler(object):
 
             # Unconditional sampling step
             # pred_x0 is from DDIM
-
-            if index % 5 == 0 and index < start_monotone_opt:
-                img_decoded = self.model.decode_first_stage(img.detach()) # Decode the latent space into pixel space
-                reconstructed = clear_color(img_decoded)
-                plt.imsave(f'{index}_before_opt.png', reconstructed)
-                img = self.monotone_optimization(img, cond, measurement, ts, index, prev_index, ddim_use_original_steps, quantize_denoised, temperature, noise_dropout, 
-                            score_corrector, corrector_kwargs, unconditional_guidance_scale, unconditional_conditioning, n_shots=4, operator_fn=operator_fn, eps=1e-3, max_iters=30)
-                img_decoded = self.model.decode_first_stage(img.detach()) # Decode the latent space into pixel space
-                reconstructed = clear_color(img_decoded)
-                plt.imsave(f'{index}_after_opt.png', reconstructed)
         
             out, pred_x0, _ = self.p_sample_ddim(img, cond, ts, index=index, prev_index=prev_index, use_original_steps=ddim_use_original_steps,
                                       quantize_denoised=quantize_denoised, temperature=temperature,
@@ -279,6 +270,20 @@ class DDIMSampler(object):
             else:
                 a_prev = torch.full((b, 1, 1, 1), self.alphas_prev[0], device=device, requires_grad=False)
 
+            if index % 5 == 0 and index < start_monotone_opt:
+            #if index < start_monotone_opt and index < prev_index:
+                img_decoded = self.model.decode_first_stage(pred_x0.detach()) # Decode the latent space into pixel space
+                reconstructed = clear_color(img_decoded)
+                plt.imsave(f'{index}_before_opt.png', reconstructed)
+                pred_x0 = self.monotone_optimization(pred_x0, a_prev, cond, measurement, ts, index, prev_index, ddim_use_original_steps, quantize_denoised, temperature, noise_dropout, 
+                            score_corrector, corrector_kwargs, unconditional_guidance_scale, unconditional_conditioning, n_shots=3, operator_fn=operator_fn, eps=1e-3, max_iters=100)
+                
+                #self.noise = noise_like(pred_x0.shape, device)
+                out = a_prev.sqrt() * pred_x0 + (1. - a_prev).sqrt() * self.noise
+                
+                img_decoded = self.model.decode_first_stage(pred_x0.detach()) # Decode the latent space into pixel space
+                reconstructed = clear_color(img_decoded)
+                plt.imsave(f'{index}_after_opt.png', reconstructed)
             
             if index >= start_monotone_opt:
 
@@ -297,7 +302,7 @@ class DDIMSampler(object):
             index_split = total_steps // splits
 
             # Performing time-travel if in selected indices
-            if not (index % 5 == 0 and index < start_monotone_opt):  
+            if not (index < start_monotone_opt and index % 5 == 0):   # and 
 
                 if self.opt_change_history[-1] is not None:
                     with torch.no_grad():
@@ -359,20 +364,20 @@ class DDIMSampler(object):
                 intermediates['x_inter'].append(img)
                 intermediates['pred_x0'].append(pred_x0)       
                 
-        #pred_x0, _ = self.latent_optimization(measurement=measurement,
-        #                                                     z_init=img.detach(),
-        #                                                     operator_fn=operator_fn)
+        pred_x0, _ = self.latent_optimization(measurement=measurement,
+                                                             z_init=img.detach(),
+                                                             operator_fn=operator_fn)
         img = pred_x0.detach().clone()
             
         return img, intermediates
     
-    def monotone_optimization(self, x_t, cond, measurement, t, original_index, original_prev_index, use_original_steps, quantize_denoised, temperature, noise_dropout, score_corrector, 
+    def monotone_optimization(self, pred_x0, a_prev, cond, measurement, t, original_index, original_prev_index, use_original_steps, quantize_denoised, temperature, noise_dropout, score_corrector, 
                             corrector_kwargs, unconditional_guidance_scale, unconditional_conditioning, n_shots=4, operator_fn=None, eps=1e-3, max_iters=20):
         
-        opt_var = x_t.detach().clone()
+        opt_var = pred_x0.detach().clone()
         pre_opt = opt_var.clone()
         opt_var = opt_var.requires_grad_()
-        optimizer = torch.optim.AdamW([opt_var], lr=1e-1)
+        optimizer = torch.optim.AdamW([opt_var], lr=1e-2)
         measurement = measurement.detach()
 
         # Training loop
@@ -380,7 +385,7 @@ class DDIMSampler(object):
         for i in range(max_iters):
             optimizer.zero_grad()
 
-            _, _, measurement_losses = self.precise_tweedie(opt_var, cond, measurement, operator_fn, t, original_index, original_prev_index, use_original_steps, quantize_denoised, temperature, noise_dropout, 
+            measurement_losses = self.precise_tweedie(opt_var, a_prev, cond, measurement, operator_fn, t, original_index, original_prev_index, use_original_steps, quantize_denoised, temperature, noise_dropout, 
                             score_corrector, corrector_kwargs, unconditional_guidance_scale, unconditional_conditioning, n_shots)
             
             
@@ -388,11 +393,11 @@ class DDIMSampler(object):
             if len(measurement_losses) > 1:
                 loss_ratio = measurement_losses[1:] / measurement_losses[:-1]
             else:
-                loss_ratio = torch.tensor([1.0], device=measurement_losses.device)
+                loss_ratio = torch.tensor([2.0], device=measurement_losses.device)
 
-            adjusted_loss = average_loss * torch.exp(0.0*(torch.mean(loss_ratio)-1)) # Adjusting loss based on the ratio of losses
+            adjusted_loss = average_loss * torch.exp(1.0*(torch.mean(loss_ratio)-1)) # Adjusting loss based on the ratio of losses
 
-            #print(f"Iteration {i}, Loss: {adjusted_loss.item()}, Ratio: {loss_ratio.mean().item()}")
+            #print(f"Iteration {i}, Losses: {measurement_losses}, Ratio: {loss_ratio.mean().item()}")
             
             adjusted_loss.backward() # Take GD step
             optimizer.step()
@@ -425,7 +430,7 @@ class DDIMSampler(object):
         def closure():
             optimizer.zero_grad()
 
-            _, _, measurement_losses = self.precise_tweedie(opt_var, cond, measurement, operator_fn, t, original_index, original_prev_index, use_original_steps, quantize_denoised, temperature, noise_dropout, 
+            measurement_losses = self.precise_tweedie(opt_var, cond, measurement, operator_fn, t, original_index, original_prev_index, use_original_steps, quantize_denoised, temperature, noise_dropout, 
                             score_corrector, corrector_kwargs, unconditional_guidance_scale, unconditional_conditioning, n_shots)
             
             
@@ -627,14 +632,17 @@ class DDIMSampler(object):
 
         return img, intermediates
     
-    def precise_tweedie(self, x, c, measurement, operator_fn, t, original_index, original_prev_index, use_original_steps, quantize_denoised, temperature, noise_dropout, 
+    def precise_tweedie(self, pred_x0, a_prev, c, measurement, operator_fn, t, original_index, original_prev_index, use_original_steps, quantize_denoised, temperature, noise_dropout, 
                         score_corrector, corrector_kwargs, unconditional_guidance_scale, unconditional_conditioning, n_shots=4):
-        b, *_, device = *x.shape, x.device
+        b, *_, device = *pred_x0.shape, pred_x0.device
         step_size = t//n_shots
+        #step_size = min(1, t//n_shots)
         time_steps = [((t - i*step_size)//2)*2 +1 for i in range(0, n_shots)] + [torch.tensor(-1)]
         time_steps = [time_steps[i] for i in range(len(time_steps)) if i==len(time_steps)-1 or (time_steps[i+1] != time_steps[i])]
 
-        x_inter = x.clone()
+
+        self.noise = noise_like(pred_x0.shape, device)
+        x_inter = a_prev.sqrt() * pred_x0 + (1. - a_prev).sqrt() * self.noise
 
         losses = torch.zeros((len(time_steps)-1,)).to(device)
 
@@ -648,32 +656,31 @@ class DDIMSampler(object):
                                       corrector_kwargs=corrector_kwargs,
                                       unconditional_guidance_scale=unconditional_guidance_scale,
                                       unconditional_conditioning=unconditional_conditioning)
-            losses[i] = self.loss(measurement, operator_fn(self.model.differentiable_decode_first_stage(x_inter)))
+                
+            losses[i] = self.loss(measurement, operator_fn(self.model.differentiable_decode_first_stage(pred_x0)))
             
+        #a_t = torch.full((b, 1, 1, 1), self.alphas[original_index], device=device, requires_grad=False)
+        #sqrt_one_minus_at = torch.full((b, 1, 1, 1), self.sqrt_one_minus_alphas[original_index], device=device, requires_grad=False)
+        #if original_prev_index >= 0:
+        #    a_prev = torch.full((b, 1, 1, 1), self.alphas[original_prev_index], device=device, requires_grad=False)
+        #else:
+        #    a_prev = torch.full((b, 1, 1, 1), self.alphas_prev[0], device=device, requires_grad=False) 
             
-        a_t = torch.full((b, 1, 1, 1), self.alphas[original_index], device=device, requires_grad=False)
-        sqrt_one_minus_at = torch.full((b, 1, 1, 1), self.sqrt_one_minus_alphas[original_index], device=device, requires_grad=False)
-        if original_prev_index >= 0:
-            a_prev = torch.full((b, 1, 1, 1), self.alphas[original_prev_index], device=device, requires_grad=False)
-        else:
-            a_prev = torch.full((b, 1, 1, 1), self.alphas_prev[0], device=device, requires_grad=False) 
-            
-        e_t = (x - pred_x0 * a_t.sqrt())/sqrt_one_minus_at
+        #e_t = (x - pred_x0 * a_t.sqrt())/sqrt_one_minus_at
         
         #sigma_t = torch.full((b, 1, 1, 1), self.sigmas[original_index], device=device, requires_grad=False) 
         #sigma_t = torch.full((b, 1, 1, 1), 0, device=device, requires_grad=False) 
-        dir_xt = (1. - a_prev).sqrt() * e_t
+        #dir_xt = (1. - a_prev).sqrt() * e_t
         #noise = sigma_t * noise_like(x.shape, device, repeat_noise) * temperature
-        x_prev = a_prev.sqrt() * + dir_xt
+        #x_prev = a_prev.sqrt() * + dir_xt
             
-        return x_prev, pred_x0, losses
+        return losses
 
 
     def p_sample_ddim(self, x, c, t, index, prev_index, use_original_steps=False, quantize_denoised=False,
                       temperature=1., noise_dropout=0., score_corrector=None, corrector_kwargs=None,
-                      unconditional_guidance_scale=1., unconditional_conditioning=None, n_shots=4):
+                      unconditional_guidance_scale=1., unconditional_conditioning=None):
         b, *_, device = *x.shape, x.device
-
 
         a_t = torch.full((b, 1, 1, 1), self.alphas[index], device=device, requires_grad=False) # Needed for ReSampling
         sqrt_one_minus_at = torch.full((b, 1, 1, 1), self.sqrt_one_minus_alphas[index], device=device, requires_grad=False)

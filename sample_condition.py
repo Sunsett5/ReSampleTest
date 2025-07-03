@@ -1,5 +1,6 @@
 from ldm_inverse.condition_methods import get_conditioning_method
-from ldm.models.diffusion.ddim import DDIMSampler
+#from ldm.models.diffusion.ddim import DDIMSampler
+from ldm.models.diffusion.ddim_retrace import DDIMSampler
 from data.dataloader import get_dataset, get_dataloader
 from scripts.utils import clear_color, mask_generator
 import matplotlib.pyplot as plt
@@ -16,6 +17,7 @@ from ldm.util import instantiate_from_config
 from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import peak_signal_noise_ratio as psnr
 import lpips
+import pandas as pd
 
 def compute_nmse(y_true_temp, y_pred_temp, eps=1e-6):
     if isinstance(y_true_temp, np.ndarray):
@@ -102,7 +104,7 @@ def compute_lpips(y_true_temp, y_pred_temp):
 
 def get_model(args):
     config = OmegaConf.load(args.ldm_config)
-    model = load_model_from_config(config, args.diffusion_config)
+    model = load_model_from_config(config, args.diffusion_config, args.gpu)
 
     return model
 
@@ -111,7 +113,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--model_config', type=str)
 parser.add_argument('--ldm_config', default="configs/latent-diffusion/ffhq-ldm-vq-4.yaml", type=str)
 parser.add_argument('--diffusion_config', default="models/ldm/model.ckpt", type=str)
-parser.add_argument('--task_config', default="configs/tasks/inpainting_config.yaml", type=str)
+parser.add_argument('--task_config', default="configs/tasks/gaussian_deblur_config.yaml", type=str)
 parser.add_argument('--gpu', type=int, default=0)
 parser.add_argument('--save_dir', type=str, default='./results')
 parser.add_argument('--ddim_steps', default=500, type=int)
@@ -121,14 +123,13 @@ parser.add_argument('--ddim_scale', default=1.0, type=float)
 
 args = parser.parse_args()
 
-
 # Load configurations
 task_config = load_yaml(args.task_config)
 
 # Device setting
-device_str = f"cuda:0" if torch.cuda.is_available() else 'cpu'
+device_str = f"cuda:{args.gpu}" if torch.cuda.is_available() else 'cpu'
 print(f"Device set to {device_str}.")
-device = torch.device(device_str)  
+device = torch.device(device_str) 
 
 # Loading model
 model = get_model(args)
@@ -180,7 +181,12 @@ for i, ref_img in enumerate(loader):
 if measure_config['operator']['name'] == 'inpainting':
   mask_gen = mask_generator(**measure_config['mask_opt'])
 
-metric_list = ['psnr', 'ssim']
+metric_results = {
+    'psnr': [],
+    'nmse': [],
+    'ssim': [],
+    'lpips': []
+}
 
 # Do inference
 for i, ref_img in enumerate(loader):
@@ -216,19 +222,68 @@ for i, ref_img in enumerate(loader):
     true = clear_color(ref_img)
 
     # Saving images
-    plt.imsave(os.path.join(out_path, 'input', fname+'_true2.png'), true)
-    plt.imsave(os.path.join(out_path, 'label', fname+'_label2.png'), label)
-    plt.imsave(os.path.join(out_path, 'recon', fname+'_recon2.png'), reconstructed)
+    plt.imsave(os.path.join(out_path, 'input', fname+'_true.png'), true)
+    plt.imsave(os.path.join(out_path, 'label', fname+'_label.png'), label)
+    plt.imsave(os.path.join(out_path, 'recon', fname+'_recon.png'), reconstructed)
 
-    meas_psnr_all = psnr(true, reconstructed)
-    meas_nmse_all = compute_nmse(true, reconstructed)
+    meas_psnr_all = psnr(true, reconstructed).item()
+    meas_nmse_all = compute_nmse(true, reconstructed).item()
     meas_ssim_all = compute_ssim(true, reconstructed)
     meas_lpips_all = compute_lpips(true, reconstructed)
 
-    print("measurement psnr: ", meas_psnr_all.item())
-    print("measurement nmse: ", meas_nmse_all.item())
+    metric_results['psnr'].append(meas_psnr_all)
+    metric_results['nmse'].append(meas_nmse_all)
+    metric_results['ssim'].append(meas_ssim_all)
+    metric_results['lpips'].append(meas_lpips_all)
+
+    print("measurement psnr: ", meas_psnr_all)
+    print("measurement nmse: ", meas_nmse_all)
     print("measurement ssim: ", meas_ssim_all)
     print("measurement lpips: ", meas_lpips_all)
+""" 
+    #plot norm and hhi (twinax)
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax1 = ax.twinx()
+    line1 = ax.plot(sampler.norm_history, label='Grad Norm')
+    line2 = ax1.plot(sampler.hhi_history, label='HHI', color='orange')
+    ax.set_xlabel('Iteration')
+    ax.set_title('Grad Norm and HHI')
+    ax.set_ylabel('Grad Norm')
+    ax1.set_ylabel('HHI')
+    lines = line1 + line2
+    labels = [line.get_label() for line in lines]
+    ax.legend(lines, labels, loc='best')
+    fig.savefig("norm_HHI_plot.png", dpi=300)
+    plt.close(fig)
 
-    psnr_cur = psnr(true, reconstructed)
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.plot(sampler.ratio_history, label='HHI Ratio')
+    ax.set_xlabel('Iteration')
+    ax.set_title('HHI Ratio')
+    ax.set_ylabel('HHI Ratio')
+    ax.legend(loc='best')
+    fig.savefig("HHI_ratio_plot.png", dpi=300)
+    plt.close(fig) """
+
+# Average metrics
+average_psnr = np.mean(metric_results['psnr'])
+average_nmse = np.mean(metric_results['nmse'])
+average_ssim = np.mean(metric_results['ssim'])
+average_lpips = np.mean(metric_results['lpips'])
+
+print("COMPLETE")
+print("average psnr: ", average_psnr)
+print("average nmse: ", average_nmse)
+print("average ssim: ", average_ssim)
+print("average lpips: ", average_lpips)
+
+df = pd.DataFrame({
+    'psnr': metric_results['psnr'],
+    'nmse': metric_results['nmse'],
+    'ssim': metric_results['ssim'],
+    'lpips': metric_results['lpips'],
+})
+
+# Save to Excel
+df.to_csv("./excel_results/output_consistent_opti_30_start_100_every_5_NoInject_NoDPS.csv", index=False)
 

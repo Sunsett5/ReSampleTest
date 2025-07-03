@@ -5,6 +5,7 @@ import numpy as np
 from tqdm import tqdm
 from functools import partial
 from scripts.utils import *
+import matplotlib.pyplot as plt
 
 from ldm.modules.diffusionmodules.util import make_ddim_sampling_parameters, make_ddim_timesteps, noise_like, \
     extract_into_tensor
@@ -218,7 +219,7 @@ class DDIMSampler(object):
         elif timesteps is not None and not ddim_use_original_steps:
             subset_end = int(min(timesteps / self.ddim_timesteps.shape[0], 1) * self.ddim_timesteps.shape[0]) - 1
             timesteps = self.ddim_timesteps[:subset_end]
-
+    
         intermediates = {'x_inter': [img], 'pred_x0': [img]}
         time_range = reversed(range(0,timesteps)) if ddim_use_original_steps else np.flip(timesteps)
         total_steps = timesteps if ddim_use_original_steps else timesteps.shape[0]
@@ -251,6 +252,7 @@ class DDIMSampler(object):
                                       corrector_kwargs=corrector_kwargs,
                                       unconditional_guidance_scale=unconditional_guidance_scale,
                                       unconditional_conditioning=unconditional_conditioning)
+        
 
             img, _ = measurement_cond_fn(x_t=out, # x_t is x_{t-1}
                                             measurement=measurement,
@@ -331,6 +333,7 @@ class DDIMSampler(object):
                                                              z_init=img.detach(),
                                                              operator_fn=operator_fn)
         img = psuedo_x0.detach().clone()
+
             
         return img, intermediates
 
