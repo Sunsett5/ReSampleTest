@@ -244,8 +244,7 @@ class DDIMSampler(object):
             plt.close()
 
             for i, step in enumerate(iterator):    
-                img_decoded = self.model.decode_first_stage(img.detach()) # Decode the latent space into pixel space
-                reconstructed = clear_color(img_decoded)
+                reconstructed = clear_color(img.detach())
                 plt.imsave(f'{i_pass}_{i}_x0.png', reconstructed) 
             
                 
@@ -291,12 +290,11 @@ class DDIMSampler(object):
                 
                 img_trajectory.append(img.detach().clone())
 
-            
-            img_decoded = self.model.decode_first_stage(img.detach()) # Decode the latent space into pixel space
-            reconstructed = clear_color(img_decoded)
+        
+            reconstructed = clear_color(img.detach())
             plt.imsave(f'{i_pass}_{i+1}_x0.png', reconstructed)
 
-            img_trajectory[-1] = self.model.encode_first_stage(measurement)
+            img_trajectory[-1] = measurement
 
             for i, step in enumerate(reversed(time_range)):        
                 # Instantiating parameters
@@ -363,9 +361,6 @@ class DDIMSampler(object):
             total_loss.backward()
             #torch.nn.utils.clip_grad_norm_([opt_var], max_norm=0.1)
             optimizer.step()
-
-        img_decoded = self.model.decode_first_stage(img_ddim.detach()) # Decode the latent space into pixel space
-        reconstructed = clear_color(img_decoded)
         
 
         return opt_var.detach().clone()
@@ -390,8 +385,6 @@ class DDIMSampler(object):
 
         # current prediction for x_0
         pred_x0 = (x - (1-self.a_t).sqrt() * e_t) / self.a_t.sqrt()
-        if quantize_denoised:
-            pred_x0, _, *_ = self.model.first_stage_model.quantize(pred_x0)
         # direction pointing to x_t
         dir_xt = (1. - self.a_prev).sqrt() * e_t
         #noise = sigma_t * noise_like(x.shape, device, repeat_noise) * temperature
